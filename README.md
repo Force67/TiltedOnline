@@ -20,5 +20,12 @@ Check GETTINGSTARTED.md for the detailed steps.
 
 - Check the issues, it's a good place to start when you don't know what to do.
 - Fork the repository and create pull requests to this repository.
+<<<<<<< Updated upstream
 - Try to keep your code clean.
 
+=======
+- Try to keep your code clean, following the [code guidelines](https://wiki.tiltedphoques.com/tilted-online/coding/code-guidelines).
+
+## License
+For information regarding licensing, please check out [LICENSE.md](LICENSE.md).
+>>>>>>> Stashed changes

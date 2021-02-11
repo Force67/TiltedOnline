@@ -5,9 +5,12 @@
 Build/*.log
 Build/*.torrent
 
+.xmake
+Build
 Build/obj
 Build/projects
 
+vsxmake2019
 Build/bin
 Build/bin64
 Build/Release
