@@ -5,6 +5,7 @@
 #include <TiltedCore/Initializer.hpp>
 
 static Window* g_windowInstance = nullptr;
+static WNDPROC g_gameWndProc = nullptr;
 
 Window::Window(MessageHandler& aHandler) : m_Handler(aHandler)
 {
@@ -127,6 +128,17 @@ Window::WindowDimensions Window::GetWindowDimensions() const
 
 LRESULT CALLBACK Window::StaticWndProc(HWND aHwnd, UINT aMsg, WPARAM aWp, LPARAM aLp)
 {
+    if (g_gameWndProc)
+    {
+        static bool x = false;
+        if (!x)
+        {
+            
+        }
+
+        g_gameWndProc(aHwnd, aMsg, aWp, aLp);
+    }
+
     Window* pPtr = reinterpret_cast<Window*>(GetWindowLongPtr(aHwnd, GWLP_USERDATA));
     if (aMsg == WM_NCCREATE)
     {
@@ -143,7 +155,7 @@ LRESULT CALLBACK Window::StaticWndProc(HWND aHwnd, UINT aMsg, WPARAM aWp, LPARAM
     return DefWindowProcW(aHwnd, aMsg, aWp, aLp);
 }
 
-static HWND HookCreateWindowExA(DWORD dwExStyle, 
+static HWND CreateWindowExA_Hook(DWORD dwExStyle, 
     const char* lpClassName, 
     const char* lpWindowName, 
     DWORD dwStyle, int X, int Y,
@@ -151,17 +163,33 @@ static HWND HookCreateWindowExA(DWORD dwExStyle,
     HWND hWndParent, HMENU hMenu, 
     HINSTANCE hInstance, LPVOID lpParam)
 {
+
     HWND handle = g_windowInstance->GetNativeHandle();
-    SetWindowPos(handle, nullptr, X, Y, 0, 0, 0);
-    SetWindowLongPtr(handle, GWL_STYLE, dwStyle);
+    //SetWindowPos(handle, nullptr, X, Y, 0, 0, 0);
+    //SetWindowLongPtr(handle, GWL_STYLE, dwStyle);
+
+    //auto newText = fmt::format();
+    //SetWindowTextW();
 
     return handle;
 }
 
+ATOM RegisterClassA_Hook(const WNDCLASSA* lpWndClass)
+{
+    g_gameWndProc = lpWndClass->lpfnWndProc;
 
-static TiltedPhoques::Initializer init([] { 
-    using TCreateWindowExA = decltype(&HookCreateWindowExA);
+    g_gameWndProc(g_windowInstance->GetNativeHandle(), WM_ACTIVATE, WA_ACTIVE, 0);
+    return 0;
+}
 
-    TCreateWindowExA RealCreateWindowExA;
-    //TP_HOOK_IAT(CreateWindowExA, "USER32.dll"); 
+LRESULT DefWindowProcA_Hook(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+    return DefWindowProcW(hWnd, Msg, wParam, lParam);
+}
+
+static TiltedPhoques::Initializer init([] 
+{ 
+    TiltedPhoques::HookIATIm(nullptr, "User32.dll", "RegisterClassA", RegisterClassA_Hook);
+    TiltedPhoques::HookIATIm(nullptr, "User32.dll", "CreateWindowExA", CreateWindowExA_Hook);
+    TiltedPhoques::HookIATIm(nullptr, "User32.dll", "DefWindowProcA", DefWindowProcA_Hook);
 });

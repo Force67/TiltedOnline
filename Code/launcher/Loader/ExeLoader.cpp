@@ -6,15 +6,15 @@
  */
 
 #include <algorithm>
-#include "GameLoader.h"
+#include "ExeLoader.h"
 
 #include <TiltedCore/Filesystem.hpp>
 
-GameLoader::GameLoader(uintptr_t aLoadLimit) : 
-    m_loadLimit(aLoadLimit)
+ExeLoader::ExeLoader(uintptr_t aLoadLimit, funchandler_t aFuncHandler) : 
+    m_loadLimit(aLoadLimit), m_pFuncHandler(aFuncHandler)
 {}
 
-void GameLoader::LoadImports(const IMAGE_NT_HEADERS* apNtHeader)
+void ExeLoader::LoadImports(const IMAGE_NT_HEADERS* apNtHeader)
 {
     const auto* importDirectory = &apNtHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT];
     const auto* descriptor = GetTargetRVA<const IMAGE_IMPORT_DESCRIPTOR>(importDirectory->VirtualAddress);
@@ -26,6 +26,7 @@ void GameLoader::LoadImports(const IMAGE_NT_HEADERS* apNtHeader)
         HMODULE module = LoadLibraryA(name);
         if (!module)
         {
+            __debugbreak();
             continue;
         }
 
@@ -59,7 +60,7 @@ void GameLoader::LoadImports(const IMAGE_NT_HEADERS* apNtHeader)
             {
                 auto import = GetTargetRVA<IMAGE_IMPORT_BY_NAME>(*nameTableEntry);
 
-                function = (FARPROC)GetProcAddress(module, import->Name);
+                function = m_pFuncHandler(module, import->Name);
                 functionName = import->Name;
             }
 
@@ -79,7 +80,7 @@ void GameLoader::LoadImports(const IMAGE_NT_HEADERS* apNtHeader)
     }
 }
 
-void GameLoader::LoadSections(const IMAGE_NT_HEADERS* apNtHeader)
+void ExeLoader::LoadSections(const IMAGE_NT_HEADERS* apNtHeader)
 {
     auto* section = IMAGE_FIRST_SECTION(apNtHeader);
     for (int i = 0; i < apNtHeader->FileHeader.NumberOfSections; i++)
@@ -106,50 +107,15 @@ void GameLoader::LoadSections(const IMAGE_NT_HEADERS* apNtHeader)
     }
 }
 
-void GameLoader::Load(std::filesystem::path &source)
+void ExeLoader::LoadTLS(const IMAGE_NT_HEADERS* apNtHeader, const IMAGE_NT_HEADERS* apSourceNt)
 {
-    FILE* file = _wfopen(source.c_str(), L"rb");
-    if (!file)
+
+    if (apNtHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size)
     {
-        return;
-    }
-
-    // load the game into a buffer
-    fseek(file, 0, SEEK_END);
-    auto length = ftell(file);
-
-    auto data = std::make_unique<uint8_t[]>(length);
-
-    fseek(file, 0, SEEK_SET);
-    fread(data.get(), 1, length, file);
-    fclose(file);
-
-    m_moduleHandle = GetModuleHandleW(nullptr);
-
-    // the target module
-    const auto* dosHeader = GetRVA<const IMAGE_DOS_HEADER>(0);
-    if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE)
-    {
-        return;
-    }
-
-    const auto* ntHeader = GetRVA<const IMAGE_NT_HEADERS>(dosHeader->e_lfanew);
-
-    auto* sourceHeader = GetTargetRVA<IMAGE_DOS_HEADER>(0);
-    auto* sourceNtHeader = GetTargetRVA<IMAGE_NT_HEADERS>(sourceHeader->e_lfanew);
-
-    m_pEntryPoint = GetTargetRVA<void>(ntHeader->OptionalHeader.AddressOfEntryPoint);
-
-    LoadSections(ntHeader);
-    LoadImports(ntHeader);
-
-    // copy over TLS index (source in this case indicates the TLS data to copy from, which is the launcher app itself)
-    if (ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].Size)
-    {
-        const auto* targetTls = GetTargetRVA<IMAGE_TLS_DIRECTORY>(
-            sourceNtHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
         const auto* sourceTls = GetTargetRVA<IMAGE_TLS_DIRECTORY>(
-            ntHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
+            apNtHeader->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
+        const auto* targetTls = GetTargetRVA<IMAGE_TLS_DIRECTORY>(
+            apSourceNt->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_TLS].VirtualAddress);
 
         *(DWORD*)(sourceTls->AddressOfIndex) = 0;
 
@@ -164,6 +130,34 @@ void GameLoader::Load(std::filesystem::path &source)
         memcpy((void*)targetTls->StartAddressOfRawData, reinterpret_cast<void*>(sourceTls->StartAddressOfRawData),
                sourceTls->EndAddressOfRawData - sourceTls->StartAddressOfRawData);
     }
+}
+
+bool ExeLoader::Load(std::filesystem::path& source)
+{
+    auto content = TiltedPhoques::LoadFile(source);
+    if (content.empty())
+        return false;
+
+    m_pBinary = reinterpret_cast<uint8_t*>(content.data());
+    m_moduleHandle = GetModuleHandleW(nullptr);
+
+    // the target module
+    const auto* dosHeader = GetRVA<const IMAGE_DOS_HEADER>(0);
+    if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE)
+    {
+        return false;
+    }
+
+    const auto* ntHeader = GetRVA<const IMAGE_NT_HEADERS>(dosHeader->e_lfanew);
+
+    auto* sourceHeader = GetTargetRVA<IMAGE_DOS_HEADER>(0);
+    auto* sourceNtHeader = GetTargetRVA<IMAGE_NT_HEADERS>(sourceHeader->e_lfanew);
+
+    m_pEntryPoint = GetTargetRVA<void>(ntHeader->OptionalHeader.AddressOfEntryPoint);
+
+    LoadSections(ntHeader);
+    LoadImports(ntHeader);
+    LoadTLS(ntHeader, sourceNtHeader);
 
     // copy over the offset to the new imports directory
     DWORD oldProtect;
@@ -176,8 +170,7 @@ void GameLoader::Load(std::filesystem::path &source)
            sizeof(IMAGE_NT_HEADERS) + (ntHeader->FileHeader.NumberOfSections * (sizeof(IMAGE_SECTION_HEADER))));
 }
 
-void GameLoader::Execute()
+ExeLoader::entrypoint_t ExeLoader::GetEntryPoint() const
 {
-    auto start = static_cast<void (*)()>(m_pEntryPoint);
-    return start();
+    return static_cast<void (*)()>(m_pEntryPoint);
 }

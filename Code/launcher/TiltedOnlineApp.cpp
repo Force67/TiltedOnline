@@ -1,31 +1,18 @@
 
 #include <cxxopts.hpp>
 #include <Debug.hpp>
-#include <Registry.h>
 
 #include <TiltedCore/Filesystem.hpp>
 #include <TiltedCore/Initializer.hpp>
 
-#include "GameLoader.h"
 #include "TiltedOnlineApp.h"
+#include "loader/ExeLoader.h"
 
 namespace fs = std::filesystem;
 
 constexpr uintptr_t kGameLimit = 0x140000000 + 0x65000000;
 
-TiltedOnlineApp::GameId TiltedOnlineApp::ToGameId(std::string_view aName)
-{
-    if (aName == "SkyrimSE")
-        return GameId::kSkyrimSE;
-
-    if (aName == "Fallout4")
-        return GameId::kFallout4;
-
-    if (aName == "SkyrimVR")
-        return GameId::kSkyrimVRFlavoured;
-
-    return GameId::kGameUnknown;
-}
+extern bool BootstrapGame(TiltedOnlineApp*);
 
 TiltedOnlineApp::TiltedOnlineApp(int argc, char** argv)
 {
@@ -37,14 +24,14 @@ TiltedOnlineApp::TiltedOnlineApp(int argc, char** argv)
 
     std::string gameName = "";
     options.add_options()
-        ("g,game", "game name", cxxopts::value<std::string>(gameName),
-        ("r,reselect", "Reselect the game path"));
+        ("g,game", "game name", cxxopts::value<std::string>(gameName))
+        ("r,reselect", "Reselect the game path");
     try
     {
         const auto result = options.parse(argc, argv);
         if (!gameName.empty())
         {
-            if ((m_gameId = ToGameId(gameName)) == GameId::kGameUnknown)
+            if ((m_titleId = ToTitleId(gameName)) == TitleId::kUnknown)
             {
                 fmt::print("Unable to determine game type");
                 m_appState = AppState::kFailed;
@@ -55,9 +42,7 @@ TiltedOnlineApp::TiltedOnlineApp(int argc, char** argv)
             m_appState = AppState::kInGame;
         }
 
-        if (result.count("reselect"))
-            m_bReselectFlag = true;
-
+        m_bReselectFlag = result.count("reselect");
         m_pWindow = MakeUnique<Window>(*this);
         m_pRenderer = MakeUnique<RendererD3d11>();
     }
@@ -74,6 +59,14 @@ TiltedOnlineApp::~TiltedOnlineApp()
 
     if (m_pCefApp)
         m_pCefApp->Shutdown();
+
+    if (m_pGameClientHandle)
+        FreeLibrary(m_pGameClientHandle);
+}
+
+std::filesystem::path& TiltedOnlineApp::GetGamePath()
+{
+    return m_gamePath;
 }
 
 bool TiltedOnlineApp::Initialize()
@@ -92,6 +85,20 @@ bool TiltedOnlineApp::Initialize()
     // jump directly in game
     if (m_appState == AppState::kInGame)
     {
+        #if 1
+        auto& geom = m_pWindow->GetWindowDimensions();
+        RendererD3d11::Result res = m_pRenderer->Create(m_pWindow->GetNativeHandle(), geom.x, geom.y);
+
+        if (res != RendererD3d11::Result::kSuccess)
+        {
+            return false;
+        }
+
+
+        // TEMP!! hax
+        m_pWindow->Show();
+        #endif
+
         StartGame();
         return true;
     }
@@ -115,78 +122,73 @@ bool TiltedOnlineApp::Initialize()
     return true;
 }
 
-bool TiltedOnlineApp::FindGamePath()
-{
-    const std::wstring pathName = fmt::format(L"GamePath_{}", m_gameId);
-
-    m_gamePath = Registry::Read<std::wstring>(
-        Registry::Key::CurrentUser, L"SOFTWARE", L"TiltedPhoques", pathName);
-
-    if (m_gamePath.empty() || m_bReselectFlag)
-    {
-        OPENFILENAMEW file{};
-
-        wchar_t buf[MAX_PATH]{};
-        file.lStructSize = sizeof(file);
-        file.nMaxFile = MAX_PATH;
-        file.lpstrFilter = L"Executables\0*.exe\0";
-        file.lpstrDefExt = L"EXE";
-        file.lpstrTitle = L"Please select your Game executable (*.exe)";
-        file.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY | OFN_ENABLESIZING | OFN_EXPLORER;
-
-        file.lpstrFile = buf;
-        file.lpstrInitialDir = buf;
-
-        if (!GetOpenFileNameW(&file))
-        {
-            MessageBoxW(nullptr, L"Failed to retrive gamepath. Cannot launch the game!", L"TiltedPhoques", MB_ICONSTOP);
-            return false;
-        }
-
-        for (size_t i = wcslen(buf); i > 0; --i)
-        {
-            if (buf[i] == '\\')
-            {
-                buf[i + 1] = 0;
-                break;
-            }
-        }
-
-        m_gamePath = std::wstring(buf);
-
-        if (!fs::exists(m_gamePath))
-        {
-            // TODO: invalid!!!!!
-        }
-
-        // TODO: write registry
-
-        //Registry::Write();
-    
-    }
-}
-
 void TiltedOnlineApp::StartGame()
 {
+    ExeLoader::entrypoint_t start = nullptr;
+    {
+        fs::path exeName;
+        bool result = FindTitlePath(m_titleId, m_bReselectFlag, m_gamePath, exeName);
+
+        auto fullPath = m_gamePath / exeName;
+        if (!result || !fs::exists(fullPath))
+        {
+            MessageBoxW(nullptr, L"Failed to find a game path", L"TiltedPhoques", MB_OK);
+            return;
+        }
+
+        if (!BootstrapGame(this))
+        {
+            return;
+        }
+
+        ExeLoader loader(kGameLimit, GetProcAddress);
+        if (!loader.Load(fullPath))
+            return;
+
+        start = loader.GetEntryPoint();
+    }
+
     // apply all game hooks
     Initializer::RunAll();
 
-    GameLoader loader(kGameLimit);
-    loader.Load(m_gamePath);
+    // this starts the game
+    start();
 
-    return loader.Execute();
+    // game returned???!?
+}
+
+void TiltedOnlineApp::LoadClient()
+{
+    WString clientName = ToClientName(m_titleId);
+
+    auto clientPath = TiltedPhoques::GetPath() / clientName;
+    m_pGameClientHandle = LoadLibraryW(clientPath.c_str());
+
+    if (!m_pGameClientHandle)
+    {
+        auto errMsg = fmt::format(L"Unable to find {}", clientPath.native());
+
+        MessageBoxW(nullptr, errMsg.c_str(), L"TiltedOnline", MB_OK);
+
+        // TODO: cancel?
+    }
+
+    // init client...
 }
 
 void TiltedOnlineApp::HandleMessage(Window::EventType type)
 {
     if (type == Window::EventType::kResized)
     {
-        auto& geom = m_pWindow->GetWindowDimensions();
-        m_pRenderer->Resize(geom.x, geom.y);
+        if (m_pRenderer->GetSwapChain())
+        {
+            auto& geom = m_pWindow->GetWindowDimensions();
+            m_pRenderer->Resize(geom.x, geom.y);
+        }
     }
 }
 
-void TiltedOnlineApp::Exec()
+int32_t TiltedOnlineApp::Exec()
 {
     m_pClient->Create();
 
@@ -199,4 +201,6 @@ void TiltedOnlineApp::Exec()
         // ask for new events
         m_pWindow->PollEvents();
     }
+
+    return 0;
 }

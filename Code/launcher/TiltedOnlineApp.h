@@ -1,25 +1,18 @@
 #pragma once
 
 #include <spdlog/spdlog.h>
+
 #include <TiltedCore/Stl.hpp>
 #include <TiltedCore/Filesystem.hpp>
+#include <TiltedCore/Platform.hpp>
 
 #include "Window.h"
+#include "TitleSelect.h"
 #include "RendererD3d11.h"
-
-using namespace TiltedPhoques;
 
 class TiltedOnlineApp final : public Window::MessageHandler
 {
  public:
-    enum class GameId
-    {
-        kSkyrimSE = 2 << 0,
-        kFallout4 = 2 << 1,
-        kSkyrimVRFlavoured = 2 << 2,
-        kGameUnknown,
-    };
-
     enum class AppState
     {
         kFailed,
@@ -32,19 +25,17 @@ class TiltedOnlineApp final : public Window::MessageHandler
     ~TiltedOnlineApp();
 
     bool Initialize();
+    void LoadClient();
 
-    void Exec();
+    int32_t Exec();
 
-    static GameId ToGameId(std::string_view name);
-
+    std::filesystem::path& GetGamePath();
   private:
     void StartGame();
-    bool FindGamePath();
-
     void HandleMessage(Window::EventType aType) override;
 
     AppState m_appState{AppState::kStarting};
-    GameId m_gameId{GameId::kGameUnknown};
+    TitleId m_titleId{TitleId::kUnknown};
 
     UniquePtr<Window> m_pWindow;
     UniquePtr<RendererD3d11> m_pRenderer;
@@ -52,5 +43,6 @@ class TiltedOnlineApp final : public Window::MessageHandler
     UniquePtr<OverlayApp> m_pCefApp;
 
     bool m_bReselectFlag = false;
-    std::filesystem::path m_gamePath;
+    HMODULE m_pGameClientHandle = nullptr;
+    fs::path m_gamePath;
 };

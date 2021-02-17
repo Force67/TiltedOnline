@@ -43,6 +43,9 @@ public:
     void Resize(int aNewWidth, int aNewHeight);
 
     IDXGISwapChain* GetSwapChain() const noexcept override;
+    ID3D11Device* GetDevice() noexcept;
+    ID3D11DeviceContext* GetD3D11DeviceContext() noexcept;
+
   private:
     Result CreateRenderTarget(int aWidth, int aHeight);
 

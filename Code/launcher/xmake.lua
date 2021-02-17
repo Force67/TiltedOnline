@@ -18,9 +18,9 @@ target("Launcher")
     add_includedirs(
         ".",
         "../../Libraries/")
-    add_headerfiles("*.h")
+    add_headerfiles("**.h")
     add_files(
-        "*.cpp",
+        "**.cpp",
         "launcher.rc")
     add_deps(
         "TiltedReverse",
@@ -29,6 +29,7 @@ target("Launcher")
     add_syslinks(
         "user32", 
         "shell32",
+        "comdlg32",
         "ole32",
         "dxgi",
         "d3d11",

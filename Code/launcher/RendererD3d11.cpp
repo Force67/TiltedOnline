@@ -1,6 +1,9 @@
 
 #include "RendererD3d11.h"
 
+#include <TiltedCore/Initializer.hpp>
+#include <FunctionHook.hpp>
+
 // adapter for our render model
 struct D3D11RenderProvider : OverlayApp::RenderProvider
 {
@@ -26,16 +29,16 @@ struct D3D11RenderProvider : OverlayApp::RenderProvider
     RendererD3d11* m_pRenderer;
 };
 
-static RendererD3d11* g_Renderer = nullptr;
+static RendererD3d11* g_pRenderer = nullptr;
 
 RendererD3d11::RendererD3d11()
 {
-    g_Renderer = this;
+    g_pRenderer = this;
 }
 
 RendererD3d11::~RendererD3d11()
 {
-    g_Renderer = nullptr;
+    g_pRenderer = nullptr;
 }
 
 RendererD3d11::Result RendererD3d11::Create(HWND aHwnd, int aWidth, int aHeight) noexcept
@@ -190,6 +193,36 @@ IDXGISwapChain* RendererD3d11::GetSwapChain() const noexcept
 {
     return m_pSwapchain.Get();
 }
+
+ID3D11Device* RendererD3d11::GetDevice() noexcept
+{
+    return m_pDevice.Get();
+}
+
+ID3D11DeviceContext* RendererD3d11::GetD3D11DeviceContext() noexcept
+{
+    return m_pDevCtx.Get();
+}
+
+HRESULT __stdcall D3D11CreateDeviceAndSwapChain_Hook(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software,
+                                                UINT Flags, const D3D_FEATURE_LEVEL* pFeatureLevels, UINT FeatureLevels,
+                                                UINT SDKVersion, const DXGI_SWAP_CHAIN_DESC* pSwapChainDesc,
+                                                IDXGISwapChain** ppSwapChain, ID3D11Device** ppDevice,
+                                                D3D_FEATURE_LEVEL* pFeatureLevel,
+                                                ID3D11DeviceContext** ppImmediateContext)
+{
+    *ppSwapChain = g_pRenderer->GetSwapChain();
+    *ppDevice = g_pRenderer->GetDevice();
+    *ppImmediateContext = g_pRenderer->GetD3D11DeviceContext();
+
+    return 0; //OK
+}
+
+static TiltedPhoques::Initializer init([] 
+{
+    TiltedPhoques::HookIATIm(nullptr, "d3d11.dll", "D3D11CreateDeviceAndSwapChain", D3D11CreateDeviceAndSwapChain_Hook);
+});
+
 
 // TODO: hook event responder: -> hooks IAT
 // via TiltedPhoques:: Intiailizer
