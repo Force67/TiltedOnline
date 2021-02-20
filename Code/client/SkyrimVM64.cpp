@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #if TP_SKYRIM64
 
 #include <GameVM.h>

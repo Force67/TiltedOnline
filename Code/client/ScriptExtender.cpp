@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <ScriptExtender.h>
 
 int GetFileVersion(const std::filesystem::path& acFilePath, FileVersion& aVersion)

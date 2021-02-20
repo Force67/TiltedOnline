@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <Forms/TESQuest.h>
 
 TESQuest::State TESQuest::getState()

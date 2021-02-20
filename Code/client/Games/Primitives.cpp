@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <Games/Primitives.h>
 
 void NiRefObject::IncRef()

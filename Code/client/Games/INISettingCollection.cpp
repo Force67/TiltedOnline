@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <Games/TES.h>
 
 INISettingCollection* INISettingCollection::Get() noexcept

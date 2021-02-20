@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <Misc/BSScript.h>
 
 BSScript::Variable::Variable()

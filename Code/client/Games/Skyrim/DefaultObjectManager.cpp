@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <DefaultObjectManager.h>
 
 DefaultObjectManager& DefaultObjectManager::Get()

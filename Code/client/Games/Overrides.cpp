@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <Games/Overrides.h>
 
 thread_local uint32_t ScopedEquipOverride::s_refCount = 0;

@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <Games/ExtraData.h>
 
 bool BSExtraDataList::Contains(ExtraData aType) const

@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <Forms/ActorValueInfo.h>
 
 uint32_t ActorValueInfo::Resolve(uint32_t aId) noexcept

@@ -6,6 +6,7 @@ struct TESWorldSpace;
 struct NiPoint3;
 struct TESForm;
 struct Actor;
+
 struct GridCellArray
 {
     virtual ~GridCellArray();

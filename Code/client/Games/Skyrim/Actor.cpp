@@ -1,3 +1,5 @@
+#include <TiltedOnlinePCH.h>
+
 #include <Games/References.h>
 #include <Games/Skyrim/EquipManager.h>
 #include <Misc/ActorProcessManager.h>
