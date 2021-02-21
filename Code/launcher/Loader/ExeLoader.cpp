@@ -31,7 +31,7 @@ void ExeLoader::LoadImports(const IMAGE_NT_HEADERS* apNtHeader)
         }
 
         // "don't load"
-        if (reinterpret_cast<uint32_t>(module) == 0xFFFFFFFF)
+        if (*reinterpret_cast<uint32_t*>(module) == 0xFFFFFFFF)
         {
             descriptor++;
             continue;
@@ -168,6 +168,8 @@ bool ExeLoader::Load(std::filesystem::path& source)
 
     memcpy(sourceNtHeader, ntHeader,
            sizeof(IMAGE_NT_HEADERS) + (ntHeader->FileHeader.NumberOfSections * (sizeof(IMAGE_SECTION_HEADER))));
+
+    return true;
 }
 
 ExeLoader::entrypoint_t ExeLoader::GetEntryPoint() const

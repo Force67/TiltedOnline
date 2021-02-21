@@ -7102,10 +7102,11 @@ __declspec(thread) int tls7096;
 #include <Windows.h>
 
 struct TlsToucher {
-  TlsToucher()
-  {
-	tls5 = GetTickCount64();
-  }
+    TlsToucher()
+    {
+        // stop the compiler from complaining
+        tls5 = static_cast<int>(GetTickCount64());
+    }
 };
 
 TlsToucher toucher;

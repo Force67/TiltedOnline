@@ -76,7 +76,7 @@ bool BootstrapGame(TiltedOnlineApp* apAppInstance)
 
     std::wstring pathBuf;
     pathBuf.resize(32768);
-    GetEnvironmentVariableW(L"PATH", pathBuf.data(), pathBuf.length());
+    GetEnvironmentVariableW(L"PATH", pathBuf.data(), static_cast<DWORD>(pathBuf.length()));
 
     // append bin & game directories
     std::wstring newPath = appPath.wstring() + L";" + gamePath.wstring() + L";" + pathBuf;
@@ -85,7 +85,7 @@ bool BootstrapGame(TiltedOnlineApp* apAppInstance)
 }
 
 static TiltedPhoques::Initializer s_Init([] {
-   // TiltedPhoques::HookIATIm(nullptr, "Kernel32.dll", "GetStartupInfoW", GetStartupInfoW_Hook);
-   // TiltedPhoques::HookIATIm(nullptr, "Kernel32.dll", "GetModuleFileNameW", GetModuleFileNameW_Hook);
-   // TiltedPhoques::HookIATIm(nullptr, "Kernel32.dll", "RaiseException", RaiseException_Hook);
+    TP_HOOK_IAT2("Kernel32.dll", "GetStartupInfoW", GetStartupInfoW_Hook);
+    TP_HOOK_IAT2("Kernel32.dll", "GetModuleFileNameW", GetModuleFileNameW_Hook);
+    TP_HOOK_IAT2("Kernel32.dll", "RaiseException", RaiseException_Hook);
 });

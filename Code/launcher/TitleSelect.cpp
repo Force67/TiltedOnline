@@ -11,13 +11,13 @@ WString ToClientName(TitleId id) noexcept
     switch (id)
     {
     case TitleId::kSkyrimSE:
-        return L"STClient.dll";
+        return L"SkyrimTogether.dll";
     case TitleId::kSyrimVR:
-        return L"STVRClient.dll";
+        return L"SkyrimTogetherVR.dll";
     case TitleId::kFallout4:
-        return L"FTClient.dll";
+        return L"FalloutTogether.dll";
     case TitleId::kFallout4VR:
-        return L"FTVRClient.dll";
+        return L"FalloutTogetherVR.dll";
     default:
         return L"";
     }
@@ -74,7 +74,7 @@ bool FindTitlePath(TitleId aTitle, bool aForceReselect, fs::path& aPathOut, fs::
     aPathOut = Registry::ReadString<wchar_t>(HKEY_CURRENT_USER, path.c_str(), L"GamePath");
     aExeOut = Registry::ReadString<wchar_t>(HKEY_CURRENT_USER, path.c_str(), L"GameExe");
 
-    if (aPathOut.empty() || aExeOut.empty() || aForceReselect)
+    if (!fs::exists(aPathOut / aExeOut) || aForceReselect)
     {
         OPENFILENAMEW file{};
 

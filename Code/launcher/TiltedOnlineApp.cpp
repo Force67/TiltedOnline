@@ -166,14 +166,13 @@ void TiltedOnlineApp::LoadClient()
 
     if (!m_pGameClientHandle)
     {
-        auto errMsg = fmt::format(L"Unable to find {}", clientPath.native());
+        auto errMsg = fmt::format(L"Unable to load {}", clientPath.native());
 
         MessageBoxW(nullptr, errMsg.c_str(), L"TiltedOnline", MB_OK);
 
-        // TODO: cancel?
-    }
+        // todo: think about if we can kill the game
 
-    // init client...
+    }
 }
 
 void TiltedOnlineApp::HandleMessage(Window::EventType type)
