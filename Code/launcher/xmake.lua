@@ -5,6 +5,7 @@ target("Launcher")
     set_basename("TiltedOnline")
     -- disable edit and continue
     add_cxxflags("/Zi")
+    set_strip("all")
     add_ldflags(
         "/IGNORE:4254",
         "/DYNAMICBASE:NO",

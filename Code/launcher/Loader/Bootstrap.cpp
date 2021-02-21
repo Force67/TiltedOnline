@@ -85,7 +85,7 @@ bool BootstrapGame(TiltedOnlineApp* apAppInstance)
 }
 
 static TiltedPhoques::Initializer s_Init([] {
-    TiltedPhoques::HookIATIm(nullptr, "Kernel32.dll", "GetStartupInfoW", GetStartupInfoW_Hook);
-    TiltedPhoques::HookIATIm(nullptr, "Kernel32.dll", "GetModuleFileNameW", GetModuleFileNameW_Hook);
-    TiltedPhoques::HookIATIm(nullptr, "Kernel32.dll", "RaiseException", RaiseException_Hook);
+   // TiltedPhoques::HookIATIm(nullptr, "Kernel32.dll", "GetStartupInfoW", GetStartupInfoW_Hook);
+   // TiltedPhoques::HookIATIm(nullptr, "Kernel32.dll", "GetModuleFileNameW", GetModuleFileNameW_Hook);
+   // TiltedPhoques::HookIATIm(nullptr, "Kernel32.dll", "RaiseException", RaiseException_Hook);
 });

@@ -189,7 +189,7 @@ LRESULT DefWindowProcA_Hook(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 static TiltedPhoques::Initializer init([] 
 { 
-    TiltedPhoques::HookIATIm(nullptr, "User32.dll", "RegisterClassA", RegisterClassA_Hook);
-    TiltedPhoques::HookIATIm(nullptr, "User32.dll", "CreateWindowExA", CreateWindowExA_Hook);
-    TiltedPhoques::HookIATIm(nullptr, "User32.dll", "DefWindowProcA", DefWindowProcA_Hook);
+   // TiltedPhoques::HookIATIm(nullptr, "User32.dll", "RegisterClassA", RegisterClassA_Hook);
+   // TiltedPhoques::HookIATIm(nullptr, "User32.dll", "CreateWindowExA", CreateWindowExA_Hook);
+   // TiltedPhoques::HookIATIm(nullptr, "User32.dll", "DefWindowProcA", DefWindowProcA_Hook);
 });

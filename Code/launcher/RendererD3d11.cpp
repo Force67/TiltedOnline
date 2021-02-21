@@ -220,7 +220,7 @@ HRESULT __stdcall D3D11CreateDeviceAndSwapChain_Hook(IDXGIAdapter* pAdapter, D3D
 
 static TiltedPhoques::Initializer init([] 
 {
-    TiltedPhoques::HookIATIm(nullptr, "d3d11.dll", "D3D11CreateDeviceAndSwapChain", D3D11CreateDeviceAndSwapChain_Hook);
+    //TiltedPhoques::HookIATIm(nullptr, "d3d11.dll", "D3D11CreateDeviceAndSwapChain", D3D11CreateDeviceAndSwapChain_Hook);
 });
 
 
