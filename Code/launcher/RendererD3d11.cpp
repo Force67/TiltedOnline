@@ -77,24 +77,35 @@ RendererD3d11::Result RendererD3d11::Create(HWND aHwnd, int aWidth, int aHeight)
     desc.SampleDesc.Quality = 0;
     desc.Windowed = TRUE;
 
-    // yep...
-    // betheseda uses: D3D_FEATURE_LEVEL_9_1, but we need to use D3D_FEATURE_LEVEL_11_0
-    // for CEF compatability
+    // we use D3D_FEATURE_LEVEL_11_0 instead of 9_1 for better CEF drawing support
     auto featureLevel = D3D_FEATURE_LEVEL_11_0;
+    auto createFlags = 0;  
+
+    //if (bUseDeviceDebug)
+    //    createFlags = D3D11_CREATE_DEVICE_DEBUG;
 
     // for now we create the device with vsync
-    hr = D3D11CreateDeviceAndSwapChain(pAdapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr, 2, nullptr, 0, 7u, &desc,
-                                  m_pSwapchain.ReleaseAndGetAddressOf(), m_pDevice.ReleaseAndGetAddressOf(),
-                                  &featureLevel, m_pDevCtx.ReleaseAndGetAddressOf());
+    hr = D3D11CreateDeviceAndSwapChain(
+        pAdapter.Get(), 
+        D3D_DRIVER_TYPE_UNKNOWN, 
+        nullptr, 
+        createFlags,
+        nullptr, 
+        0, 
+        7u, 
+        &desc,
+        m_pSwapchain.ReleaseAndGetAddressOf(), 
+        m_pDevice.ReleaseAndGetAddressOf(),
+        &featureLevel, m_pDevCtx.ReleaseAndGetAddressOf());
 
     if (FAILED(hr))
         return Result::kNoSuitableDevice;
 
     m_pHwnd = aHwnd;
 
-    auto res = CreateRenderTarget(aWidth, aHeight);
-    if (res != Result::kSuccess)
-        return res;
+  //  auto res = CreateRenderTarget(aWidth, aHeight);
+  //  if (res != Result::kSuccess)
+  //      return res;
 
     // todo: get rid of DXGI_MWA_NO_WINDOW_CHANGES  call
     // rebuild ui on game kill...
@@ -215,14 +226,25 @@ HRESULT __stdcall D3D11CreateDeviceAndSwapChain_Hook(IDXGIAdapter* pAdapter, D3D
     *ppDevice = g_pRenderer->GetDevice();
     *ppImmediateContext = g_pRenderer->GetD3D11DeviceContext();
 
+    g_pRenderer->GetSwapChain()->ResizeBuffers(pSwapChainDesc->BufferCount, pSwapChainDesc->BufferDesc.Width,
+                                               pSwapChainDesc->BufferDesc.Height, pSwapChainDesc->BufferDesc.Format,
+                                               pSwapChainDesc->Flags);
+
+    DXGI_MODE_DESC md{};
+    md.Format = pSwapChainDesc->BufferDesc.Format;
+    md.Height = pSwapChainDesc->BufferDesc.Height;
+    md.Width = pSwapChainDesc->BufferDesc.Width;
+    md.RefreshRate = pSwapChainDesc->BufferDesc.RefreshRate;
+    md.Scaling = pSwapChainDesc->BufferDesc.Scaling;
+    md.ScanlineOrdering = pSwapChainDesc->BufferDesc.ScanlineOrdering;
+
+    g_pRenderer->GetSwapChain()->ResizeTarget(&md);
+    //g_pRenderer->GetSwapChain()->SetFullscreenState(pSwapChainDesc->Windowed, );
+
     return 0; //OK
 }
 
 static TiltedPhoques::Initializer init([] 
 {
-    //TiltedPhoques::HookIATIm(nullptr, "d3d11.dll", "D3D11CreateDeviceAndSwapChain", D3D11CreateDeviceAndSwapChain_Hook);
+    TP_HOOK_IAT2("d3d11.dll", "D3D11CreateDeviceAndSwapChain", D3D11CreateDeviceAndSwapChain_Hook);
 });
-
-
-// TODO: hook event responder: -> hooks IAT
-// via TiltedPhoques:: Intiailizer
