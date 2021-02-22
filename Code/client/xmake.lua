@@ -15,24 +15,31 @@ target(name)
     add_headerfiles("**.h|Games/Fallout4/**|Games/Skyrim/**")
     add_files("**.cpp|Games/Fallout4/**|Games/Skyrim/**")
 
+    after_install(function(target)
+        local linkdir = target:pkg("cef"):get("linkdirs")
+        local bindir = path.join(linkdir, "..", "bin")
+        os.cp(bindir, target:installdir())
+        os.rm(path.join(target:installdir(), "bin", "**Tests.exe"))
+    end)
+
     -- only include selected files
     if name == "SkyrimTogether" then
         add_files("Games/Skyrim/**.cpp")
         add_headerfiles("Games/Skyrim/**.h")
         -- rather hacky:
         add_includedirs("Games/Skyrim")
+        add_deps("SkyrimEncoding")
     end
     if name == "FalloutTogether" then
         add_files("Games/Fallout4/**.cpp")
         add_headerfiles("Games/Fallout4/**.h")
         -- rather hacky:
         add_includedirs("Games/Fallout4")
+        add_deps("FalloutEncoding")
     end
     add_deps(
         "UiProcess",
         "Common",
-        "mhook",
-        "Encoding",
         "TiltedConnect",
         "TiltedReverse",
         "TiltedHooks",
@@ -46,7 +53,10 @@ target(name)
         "gamenetworkingsockets",
         "discord",
         "imgui",
-        "cef")
+        "cef",
+        "lua",
+        "sol2",
+        "minhook")
 
     add_syslinks(
         "version")
