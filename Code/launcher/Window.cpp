@@ -2,10 +2,140 @@
 #include "Window.h"
 #include <OverlayApp.hpp>
 #include <FunctionHook.hpp>
+#include <TiltedOnlineApp.h>
 #include <TiltedCore/Initializer.hpp>
 
 static Window* g_windowInstance = nullptr;
 static WNDPROC g_gameWndProc = nullptr;
+
+static TiltedPhoques::OverlayApp* s_pApp = nullptr;
+
+void WINDOWHACK_INIT(TiltedPhoques::OverlayApp * pApp)
+{
+    s_pApp = pApp;
+}
+
+// HACK!
+namespace
+{
+
+uint32_t GetCefModifiers(uint16_t aVirtualKey)
+{
+    uint32_t modifiers = EVENTFLAG_NONE;
+
+    if (GetKeyState(VK_MENU) & 0x8000)
+    {
+        modifiers |= EVENTFLAG_ALT_DOWN;
+    }
+
+    if (GetKeyState(VK_CONTROL) & 0x8000)
+    {
+        modifiers |= EVENTFLAG_CONTROL_DOWN;
+    }
+
+    if (GetKeyState(VK_SHIFT) & 0x8000)
+    {
+        modifiers |= EVENTFLAG_SHIFT_DOWN;
+    }
+
+    if (GetKeyState(VK_LBUTTON) & 0x8000)
+    {
+        modifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
+    }
+
+    if (GetKeyState(VK_RBUTTON) & 0x8000)
+    {
+        modifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
+    }
+
+    if (GetKeyState(VK_MBUTTON) & 0x8000)
+    {
+        modifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
+    }
+
+    if (GetKeyState(VK_CAPITAL) & 1)
+    {
+        modifiers |= EVENTFLAG_CAPS_LOCK_ON;
+    }
+
+    if (GetKeyState(VK_NUMLOCK) & 1)
+    {
+        modifiers |= EVENTFLAG_NUM_LOCK_ON;
+    }
+
+    if (aVirtualKey)
+    {
+        if (aVirtualKey == VK_RCONTROL || aVirtualKey == VK_RMENU || aVirtualKey == VK_RSHIFT)
+        {
+            modifiers |= EVENTFLAG_IS_RIGHT;
+        }
+        else if (aVirtualKey == VK_LCONTROL || aVirtualKey == VK_LMENU || aVirtualKey == VK_LSHIFT)
+        {
+            modifiers |= EVENTFLAG_IS_LEFT;
+        }
+        else if (aVirtualKey >= VK_NUMPAD0 && aVirtualKey <= VK_DIVIDE)
+        {
+            modifiers |= EVENTFLAG_IS_KEY_PAD;
+        }
+    }
+
+    return modifiers;
+}
+
+void ProcessKeyboard(uint16_t aKey, uint16_t aScanCode, cef_key_event_type_t aType, bool aE0, bool aE1)
+{
+    if (aType == KEYEVENT_KEYDOWN && aKey == VK_RCONTROL)
+    {
+        //ShowCursor(!active);
+    }
+}
+
+void ProcessMouseMove(uint16_t aX, uint16_t aY)
+{
+    s_pApp->InjectMouseMove(aX, aY, GetCefModifiers(0));
+}
+
+void ProcessMouseButton(uint16_t aX, uint16_t aY, cef_mouse_button_type_t aButton, bool aDown)
+{
+    s_pApp->InjectMouseButton(aX, aY, aButton, !aDown, GetCefModifiers(0));
+}
+
+#include <windowsx.h>
+
+static LRESULT CALLBACK InputServiceWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    if (!s_pApp)
+        return 0;
+
+    POINT position;
+
+    GetCursorPos(&position);
+    ScreenToClient(GetActiveWindow(), &position);
+
+    ProcessMouseMove(static_cast<uint16_t>(position.x), static_cast<uint16_t>(position.y));
+
+    switch (uMsg)
+    {
+    case WM_CHAR:
+        ProcessKeyboard(static_cast<uint16_t>(wParam), (lParam >> 16) & 0xFF, KEYEVENT_CHAR, false, false);
+        break;
+    case WM_LBUTTONDOWN:
+    case WM_MBUTTONDBLCLK: {
+        int x = GET_X_LPARAM(lParam);
+        int y = GET_Y_LPARAM(lParam);
+        int btnType = ((uMsg == WM_LBUTTONDOWN || uMsg == WM_LBUTTONDBLCLK)
+                           ? 0
+                           : ((uMsg == WM_RBUTTONDOWN || uMsg == WM_RBUTTONDBLCLK) ? 1 : 2));
+
+        ProcessMouseButton(static_cast<uint16_t>(x), static_cast<uint16_t>(y), MBT_LEFT, true);
+    }
+    break;
+    
+    }
+
+    return 0;
+}
+}
 
 Window::Window(MessageHandler& aHandler) : m_Handler(aHandler)
 {
@@ -130,12 +260,6 @@ LRESULT CALLBACK Window::StaticWndProc(HWND aHwnd, UINT aMsg, WPARAM aWp, LPARAM
 {
     if (g_gameWndProc)
     {
-        static bool x = false;
-        if (!x)
-        {
-            
-        }
-
         g_gameWndProc(aHwnd, aMsg, aWp, aLp);
     }
 
@@ -152,6 +276,9 @@ LRESULT CALLBACK Window::StaticWndProc(HWND aHwnd, UINT aMsg, WPARAM aWp, LPARAM
     }
 
     pPtr->HandleMessage(aMsg, aWp, aLp);
+
+    InputServiceWndProc(aHwnd, aMsg, aWp, aLp);
+
     return DefWindowProcW(aHwnd, aMsg, aWp, aLp);
 }
 

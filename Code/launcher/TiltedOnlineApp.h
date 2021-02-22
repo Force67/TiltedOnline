@@ -26,12 +26,14 @@ class TiltedOnlineApp final : public Window::MessageHandler
 
     bool Initialize();
     void LoadClient();
+    void StartGame(TitleId aTid);
 
     int32_t Exec();
 
     std::filesystem::path& GetGamePath();
+
+
   private:
-    void StartGame();
     void HandleMessage(Window::EventType aType) override;
 
     AppState m_appState{AppState::kStarting};

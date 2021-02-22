@@ -43,6 +43,9 @@ RendererD3d11::~RendererD3d11()
 
 RendererD3d11::Result RendererD3d11::Create(HWND aHwnd, int aWidth, int aHeight) noexcept
 {
+    const UINT cWidth = static_cast<UINT>(aWidth);
+    const UINT cHeight = static_cast<UINT>(aHeight);
+
     CmPtr<IDXGIFactory> pFactory = nullptr;
     HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(pFactory.ReleaseAndGetAddressOf()));
     if (FAILED(hr) || !pFactory)
@@ -53,25 +56,66 @@ RendererD3d11::Result RendererD3d11::Create(HWND aHwnd, int aWidth, int aHeight)
     if (!pAdapter)
         return Result::kNoSuitableDevice;
 
-    /*IDXGIOutput* pOutput = nullptr;
-    pAdapter->EnumOutputs(0, &pOutput);
-    if (!pOutput)
+    // its 0 by default in Bethesda viewport class
+    CmPtr<IDXGIOutput> pOutPut = nullptr;
+    pAdapter->EnumOutputs(0, pOutPut.GetAddressOf());
+    if (!pOutPut)
         return Result::kNoSuitableDevice;
 
-    // this is not recommended to be done, but we are basing out implementation
-    // on the Bethesda renderer
     UINT numModes = 0;
-    pOutput->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, nullptr);*/
+    UniquePtr<DXGI_MODE_DESC[]> modes;
+    do
+    {
+        hr = pOutPut->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, nullptr);
+        if (FAILED(hr))
+            return Result::kNoSuitableDevice;
+
+        modes = MakeUnique<DXGI_MODE_DESC[]>(numModes);
+        hr =
+            pOutPut->GetDisplayModeList(DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_ENUM_MODES_INTERLACED, &numModes, modes.get());
+
+    } while (hr == DXGI_ERROR_MORE_DATA);
 
     DXGI_SWAP_CHAIN_DESC desc{};
+    bool modeFound = false;
+
+    /*
+    for (UINT i = 0; i < numModes; ++i) 
+    {
+        const auto& mode = modes[i];
+        if (mode.Width == cWidth && mode.Height == cHeight)
+        {
+            if (mode.Scaling)
+            {
+                desc.BufferDesc.Scaling = mode.Scaling;
+            }
+
+            if (!modeFound)
+            {
+                modeFound = true;
+                desc.BufferDesc.RefreshRate = mode.RefreshRate;
+            }
+            else
+            {
+                if ((mode.RefreshRate.Numerator / mode.RefreshRate.Denominator) >= (60 / 1))
+                    continue;
+
+                desc.BufferDesc.RefreshRate = mode.RefreshRate;
+            }
+
+        }
+    }*/
+
+    pOutPut.Reset();
+
     desc.BufferCount = 2;
-    desc.Flags = 2;
+    desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
     desc.BufferDesc.Width = aWidth;
     desc.BufferDesc.Height = aHeight;
     desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.BufferDesc.RefreshRate.Numerator = 60;
     desc.BufferDesc.RefreshRate.Denominator = 1;
-    desc.BufferUsage = 48;
+    desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
     desc.OutputWindow = aHwnd;
     desc.SampleDesc.Count = 1;
     desc.SampleDesc.Quality = 0;
@@ -92,7 +136,7 @@ RendererD3d11::Result RendererD3d11::Create(HWND aHwnd, int aWidth, int aHeight)
         createFlags,
         nullptr, 
         0, 
-        7u, 
+        D3D11_SDK_VERSION, 
         &desc,
         m_pSwapchain.ReleaseAndGetAddressOf(), 
         m_pDevice.ReleaseAndGetAddressOf(),
@@ -215,7 +259,7 @@ ID3D11DeviceContext* RendererD3d11::GetD3D11DeviceContext() noexcept
     return m_pDevCtx.Get();
 }
 
-HRESULT __stdcall D3D11CreateDeviceAndSwapChain_Hook(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software,
+HRESULT D3D11CreateDeviceAndSwapChain_Hook(IDXGIAdapter* pAdapter, D3D_DRIVER_TYPE DriverType, HMODULE Software,
                                                 UINT Flags, const D3D_FEATURE_LEVEL* pFeatureLevels, UINT FeatureLevels,
                                                 UINT SDKVersion, const DXGI_SWAP_CHAIN_DESC* pSwapChainDesc,
                                                 IDXGISwapChain** ppSwapChain, ID3D11Device** ppDevice,
