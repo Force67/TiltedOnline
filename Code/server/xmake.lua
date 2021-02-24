@@ -9,7 +9,6 @@ target(name)
     add_includedirs(
         ".",
         "../../Libraries/",
-        "../../Libraries/entt",
         "../../Libraries/cpp-httplib")
     set_pcxxheader("stdafx.h")
     add_headerfiles("**.h")
@@ -29,13 +28,15 @@ target(name)
         "TiltedScript",
         "TiltedConnect")
     add_packages(
-        "tiltedcore",
         "gamenetworkingsockets",
         "spdlog",
         "hopscotch-map",
         "sqlite3",
         "lua",
-        "sol2")
+        "sol2",
+        "glm",
+        "entt",
+        "tiltedcore")
 end
 
 build_server("SkyrimTogetherServer", "TP_SKYRIM=1")

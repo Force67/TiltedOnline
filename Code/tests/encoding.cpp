@@ -124,9 +124,9 @@ TEST_CASE("Static structures", "[encoding.static]")
     GIVEN("Vector3_NetQuantize")
     {
         Vector3_NetQuantize sendObjects, recvObjects;
-        sendObjects.m_x = 142.56f;
-        sendObjects.m_y = 45687.7f;
-        sendObjects.m_z = -142.56f;
+        sendObjects.x = 142.56f;
+        sendObjects.y = 45687.7f;
+        sendObjects.z = -142.56f;
 
         {
             Buffer buff(1000);
@@ -144,8 +144,8 @@ TEST_CASE("Static structures", "[encoding.static]")
     GIVEN("Vector2_NetQuantize")
     {
         Vector2_NetQuantize sendObjects, recvObjects;
-        sendObjects.X = 1000.89f;
-        sendObjects.Y = -485632.75f;
+        sendObjects.x = 1000.89f;
+        sendObjects.y = -485632.75f;
 
         {
             Buffer buff(1000);
@@ -163,8 +163,8 @@ TEST_CASE("Static structures", "[encoding.static]")
     GIVEN("Rotator2_NetQuantize")
     {
         Rotator2_NetQuantize sendObjects, recvObjects;
-        sendObjects.X = 1.89f;
-        sendObjects.Y = TiltedPhoques::Pi * 2.0f;
+        sendObjects.x = 1.89f;
+        sendObjects.y = TiltedPhoques::Pi * 2.0f;
 
         {
             Buffer buff(1000);
@@ -183,8 +183,8 @@ TEST_CASE("Static structures", "[encoding.static]")
     {
         // This test is a bit dangerous as floating errors can lead to sendObjects != recvObjects but the difference is minuscule so we don't care abut such cases
         Rotator2_NetQuantize sendObjects, recvObjects;
-        sendObjects.X = -1.87f;
-        sendObjects.Y = TiltedPhoques::Pi * 18.0f + 3.6f;
+        sendObjects.x = -1.87f;
+        sendObjects.y = TiltedPhoques::Pi * 18.0f + 3.6f;
 
         {
             Buffer buff(1000);
@@ -324,10 +324,10 @@ TEST_CASE("Packets", "[encoding.packets]")
 
         AuthenticationRequest sendMessage, recvMessage;
         sendMessage.Token = "TesSt";
-        sendMessage.Mods.StandardMods.push_back({ "Hello", 42 });
-        sendMessage.Mods.StandardMods.push_back({ "Hi", 14 });
-        sendMessage.Mods.LiteMods.push_back({ "Test", 8 });
-        sendMessage.Mods.LiteMods.push_back({ "Toast", 49 });
+        sendMessage.UserMods.StandardMods.push_back({ "Hello", 42 });
+        sendMessage.UserMods.StandardMods.push_back({"Hi", 14});
+        sendMessage.UserMods.LiteMods.push_back({"Test", 8});
+        sendMessage.UserMods.LiteMods.push_back({"Toast", 49});
 
         Buffer::Writer writer(&buff);
         sendMessage.Serialize(writer);
@@ -348,12 +348,12 @@ TEST_CASE("Packets", "[encoding.packets]")
 
         AuthenticationResponse sendMessage, recvMessage;
         sendMessage.Accepted = true;
-        sendMessage.Mods.StandardMods.push_back({ "Hello", 42 });
-        sendMessage.Mods.StandardMods.push_back({ "Hi", 14 });
-        sendMessage.Mods.LiteMods.push_back({ "Test", 8 });
-        sendMessage.Mods.LiteMods.push_back({ "Toast", 49 });
-        sendMessage.Scripts.Data.push_back(1);
-        sendMessage.Scripts.Data.push_back(2);
+        sendMessage.UserMods.StandardMods.push_back({"Hello", 42});
+        sendMessage.UserMods.StandardMods.push_back({"Hi", 14});
+        sendMessage.UserMods.LiteMods.push_back({"Test", 8});
+        sendMessage.UserMods.LiteMods.push_back({"Toast", 49});
+        sendMessage.ServerScripts.Data.push_back(1);
+        sendMessage.ServerScripts.Data.push_back(2);
         sendMessage.ReplicatedObjects.Data.push_back(3);
         sendMessage.ReplicatedObjects.Data.push_back(4);
 
@@ -432,11 +432,11 @@ TEST_CASE("Packets", "[encoding.packets]")
         sendMessage.ReferenceId.BaseId = 456799;
         sendMessage.ReferenceId.ModId = 4079;
         sendMessage.LatestAction = sendAction;
-        sendMessage.Position.m_x = -452.4f;
-        sendMessage.Position.m_y = 452.4f;
-        sendMessage.Position.m_z = 125452.4f;
-        sendMessage.Rotation.X = -1.87f;
-        sendMessage.Rotation.Y = 45.35f;
+        sendMessage.Position.x = -452.4f;
+        sendMessage.Position.y = 452.4f;
+        sendMessage.Position.z = 125452.4f;
+        sendMessage.Rotation.x = -1.87f;
+        sendMessage.Rotation.y = 45.35f;
 
         Buffer::Writer writer(&buff);
         sendMessage.Serialize(writer);

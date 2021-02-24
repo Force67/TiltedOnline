@@ -1,11 +1,12 @@
+add_requires("glm")
 
 if is_plat("windows") then
-    includes("./launcher")
-    includes("./client")
-    includes("./tp_process")
+    includes("client")
+    includes("launcher")
+    includes("tp_process")
 end
 
-includes("./common")
-includes("./server")
-includes("./encoding")
-includes("./tests")
+includes("common")
+includes("server")
+includes("encoding")
+includes("tests")

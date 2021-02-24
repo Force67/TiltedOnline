@@ -38,7 +38,6 @@
 #include <TiltedCore/TaskQueue.hpp>
 #include <TiltedCore/Buffer.hpp>
 #include <TiltedCore/Initializer.hpp>
-#include <TiltedCore/Vector3.hpp>
 
 // TiltedReverse
 #include <AutoPtr.hpp>
@@ -48,8 +47,10 @@
 #include <Debug.hpp>
 #include <ThisCall.hpp>
 
-#include <single_include/entt/entt.hpp>
+#include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
+#include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp>
 
 #include <any>
 #include <mutex>
@@ -61,6 +62,7 @@
 #include <Utils.h>
 #include <common/BuildInfo.h>
 #include <Games/Primitives.h>
+
 
 extern "C"
 {
@@ -79,9 +81,6 @@ using TiltedPhoques::Map;
 using TiltedPhoques::Vector;
 using TiltedPhoques::String;
 using TiltedPhoques::UniquePtr;
-
-using TiltedPhoques::Vector3;
-
 using TiltedPhoques::Allocator;
 using TiltedPhoques::ScratchAllocator;
 using TiltedPhoques::ScopedAllocator;
@@ -92,6 +91,8 @@ using TiltedPhoques::Outcome;
 using TiltedPhoques::App;
 
 using namespace std::chrono_literals;
+
+#include "Components.h"
 
 #include <RTTI.h>
 

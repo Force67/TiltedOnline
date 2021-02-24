@@ -5,7 +5,6 @@
 #include <UIApp.hpp>
 #include <UIViewD3D11.hpp>
 
-#include <TiltedHooks/Code/hooks/include/D3D11Hook.hpp>
 #include <Systems/RenderSystemD3D11.h>
 
 OverlayService::OverlayService()

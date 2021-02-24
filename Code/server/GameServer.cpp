@@ -158,7 +158,7 @@ void GameServer::OnDisconnection(const ConnectionId_t aConnectionId, EDisconnect
     auto playerView = m_pWorld->view<PlayerComponent>();
     for (auto entity : playerView)
     {
-        const auto& playerComponent = playerView.get(entity);
+        const auto& [playerComponent] = playerView.get(entity);
         if (playerComponent.ConnectionId == aConnectionId)
         {
             m_pWorld->GetDispatcher().trigger(PlayerLeaveEvent(entity));
@@ -172,7 +172,7 @@ void GameServer::OnDisconnection(const ConnectionId_t aConnectionId, EDisconnect
     auto ownerView = m_pWorld->view<OwnerComponent>();
     for (auto entity : ownerView)
     {
-        const auto& ownerComponent = ownerView.get(entity);
+        const auto& [ownerComponent] = ownerView.get(entity);
         if (ownerComponent.ConnectionId == aConnectionId)
         {
             entitiesToDestroy.push_back(entity);
@@ -270,12 +270,12 @@ void GameServer::HandleAuthenticationRequest(const ConnectionId_t aConnectionId,
 
         AuthenticationResponse serverResponse;
 
-        Mods& serverMods = serverResponse.Mods;
+        Mods& serverMods = serverResponse.UserMods;
 
         // Note: to lower traffic we only send the mod ids the user can fix in order as other ids will lead to a null form id anyway
         std::ostringstream oss;
         oss << "New player {:x} connected with mods\n\t Standard: ";
-        for (auto& standardMod : acRequest->Mods.StandardMods)
+        for (auto& standardMod : acRequest->UserMods.StandardMods)
         {
             oss << standardMod.Filename << ", ";
 
@@ -292,7 +292,7 @@ void GameServer::HandleAuthenticationRequest(const ConnectionId_t aConnectionId,
         }
 
         oss << "\n\t Lite: ";
-        for (auto& liteMod : acRequest->Mods.LiteMods)
+        for (auto& liteMod : acRequest->UserMods.LiteMods)
         {
             oss << liteMod.Filename << ", ";
 
@@ -323,7 +323,7 @@ void GameServer::HandleAuthenticationRequest(const ConnectionId_t aConnectionId,
 
         spdlog::info(oss.str(), aConnectionId);
 
-        serverResponse.Scripts = std::move(scripts.SerializeScripts());
+        serverResponse.ServerScripts = std::move(scripts.SerializeScripts());
         serverResponse.ReplicatedObjects = std::move(scripts.GenerateFull());
 
         Send(aConnectionId, serverResponse);

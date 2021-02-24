@@ -15,7 +15,6 @@
 
 #include <Components.h>
 #include <World.h>
-#include "TiltedCore/ViewBuffer.hpp"
 
 extern thread_local const char* g_animErrorCode;
 
@@ -90,8 +89,8 @@ void AnimationSystem::Serialize(World& aWorld, ClientReferencesMoveRequest& aMov
 
     movement.Position = pActor->position;
 
-    movement.Rotation.X = pActor->rotation.m_x;
-    movement.Rotation.Y = pActor->rotation.m_z;
+    movement.Rotation.x = pActor->rotation.x;
+    movement.Rotation.y = pActor->rotation.z;
 
     pActor->SaveAnimationVariables(movement.Variables);
 
