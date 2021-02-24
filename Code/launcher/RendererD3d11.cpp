@@ -1,33 +1,9 @@
 
+#include "Window.h"
 #include "RendererD3d11.h"
 
 #include <TiltedCore/Initializer.hpp>
 #include <FunctionHook.hpp>
-
-// adapter for our render model
-struct D3D11RenderProvider : OverlayApp::RenderProvider
-{
-    explicit D3D11RenderProvider(RendererD3d11* aRenderer) : m_pRenderer(aRenderer)
-    {}
-
-    OverlayRenderHandler* Create() override
-    {
-        auto* pRenderHandler = new OverlayRenderHandlerD3D11(m_pRenderer);
-        // configure the render handler to be visible by default
-        // for the launcher
-        pRenderHandler->SetVisible(true);
-
-        return pRenderHandler;
-    }
-
-    [[nodiscard]] HWND GetWindow() override
-    {
-        return m_pRenderer->m_pHwnd;
-    }
-
-  private:
-    RendererD3d11* m_pRenderer;
-};
 
 static RendererD3d11* g_pRenderer = nullptr;
 
@@ -41,10 +17,9 @@ RendererD3d11::~RendererD3d11()
     g_pRenderer = nullptr;
 }
 
-RendererD3d11::Result RendererD3d11::Create(HWND aHwnd, int aWidth, int aHeight) noexcept
+RendererD3d11::Result RendererD3d11::Create(const Window& aWindow) noexcept
 {
-    const UINT cWidth = static_cast<UINT>(aWidth);
-    const UINT cHeight = static_cast<UINT>(aHeight);
+    auto cViewportSize = aWindow.GetWindowRect();
 
     CmPtr<IDXGIFactory> pFactory = nullptr;
     HRESULT hr = CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(pFactory.ReleaseAndGetAddressOf()));
@@ -110,13 +85,13 @@ RendererD3d11::Result RendererD3d11::Create(HWND aHwnd, int aWidth, int aHeight)
 
     desc.BufferCount = 2;
     desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-    desc.BufferDesc.Width = aWidth;
-    desc.BufferDesc.Height = aHeight;
+    desc.BufferDesc.Width = cViewportSize.x;
+    desc.BufferDesc.Height = cViewportSize.y;
     desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     desc.BufferDesc.RefreshRate.Numerator = 60;
     desc.BufferDesc.RefreshRate.Denominator = 1;
     desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_SHADER_INPUT;
-    desc.OutputWindow = aHwnd;
+    desc.OutputWindow = aWindow.GetNativeHandle();
     desc.SampleDesc.Count = 1;
     desc.SampleDesc.Quality = 0;
     desc.Windowed = TRUE;
@@ -144,8 +119,6 @@ RendererD3d11::Result RendererD3d11::Create(HWND aHwnd, int aWidth, int aHeight)
 
     if (FAILED(hr))
         return Result::kNoSuitableDevice;
-
-    m_pHwnd = aHwnd;
 
   //  auto res = CreateRenderTarget(aWidth, aHeight);
   //  if (res != Result::kSuccess)
@@ -187,11 +160,6 @@ RendererD3d11::Result RendererD3d11::CreateRenderTarget(int aWidth, int aHeight)
     return Result::kSuccess;
 }
 
-std::unique_ptr<OverlayApp::RenderProvider> RendererD3d11::CreateRenderProvider()
-{
-    return std::unique_ptr<OverlayApp::RenderProvider>(new D3D11RenderProvider(this));
-}
-
 void RendererD3d11::Resize(int aNewWidth, int aNewHeight)
 {
     // clear render target
@@ -227,7 +195,7 @@ void RendererD3d11::Resize(int aNewWidth, int aNewHeight)
     m_pDevCtx->RSSetViewports(1, &vp);
 }
 
-void RendererD3d11::Begin()
+void RendererD3d11::BeginDraw()
 {
     // bind the current view
     m_pDevCtx->OMSetRenderTargets(1, m_pRtv.GetAddressOf(), nullptr);
@@ -239,7 +207,7 @@ void RendererD3d11::Begin()
 }
 
 // submit frame
-void RendererD3d11::End()
+void RendererD3d11::EndDraw()
 {
     m_pSwapchain->Present(1, 0);
 }

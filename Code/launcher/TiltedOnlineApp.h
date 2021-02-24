@@ -41,8 +41,9 @@ class TiltedOnlineApp final : public Window::MessageHandler
 
     UniquePtr<Window> m_pWindow;
     UniquePtr<RendererD3d11> m_pRenderer;
-    OverlayClient* m_pClient = nullptr;
-    UniquePtr<OverlayApp> m_pCefApp;
+
+    UniquePtr<UIApp> m_pWebApp;
+    CefRefPtr<UIView> m_pMainView = nullptr;
 
     bool m_bReselectFlag = false;
     HMODULE m_pGameClientHandle = nullptr;

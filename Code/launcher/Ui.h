@@ -1,7 +1,6 @@
 #pragma once
 
-#include <OverlayClient.hpp>
-
+#if 0
 class TiltedOnlineApp;
 
 class UiClient final : public TiltedPhoques::OverlayClient
@@ -16,3 +15,4 @@ public:
   private:
     TiltedOnlineApp& m_app;
 };
+#endif

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Windows.h>
+#include <glm/glm.hpp>
 #include <TiltedCore/Stl.hpp>
 
 using namespace TiltedPhoques;
@@ -24,11 +25,6 @@ public:
         virtual void HandleMessage(EventType) = 0;
     };
 
-    struct WindowDimensions
-    {
-        int32_t x, y;
-    };
-
     Window(MessageHandler&);
     ~Window();
 
@@ -45,7 +41,7 @@ public:
     static void GetOptimalResolution(int32_t& x, int32_t& y);
 
     const HWND GetNativeHandle() const;
-    WindowDimensions GetWindowDimensions() const;
+    glm::uvec2 GetWindowRect() const;
 
   private:
     static LRESULT CALLBACK StaticWndProc(HWND aHwnd, UINT aMsg, WPARAM aWp, LPARAM aLp);

@@ -69,7 +69,8 @@ extern "C"
 }
 
 #define SOL_ALL_SAFETIES_ON 1
-#include <sol/sol.hpp>
+#include <sol.hpp>
+//#include <sol/sol.hpp>
 
 using TiltedPhoques::AutoPtr;
 using TiltedPhoques::Set;

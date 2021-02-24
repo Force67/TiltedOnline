@@ -6,8 +6,8 @@
 #include <string>
 #include <TiltedCore/Stl.hpp>
 
-#include <OverlayApp.hpp>
-#include <OverlayRenderHandlerD3D11.hpp>
+#include <UIApp.hpp>
+#include <UIViewD3D11.hpp>
 
 // im just lazy, lol
 template<typename T>
@@ -16,8 +16,9 @@ using CmPtr = Microsoft::WRL::ComPtr<T>;
 using namespace TiltedPhoques;
 
 struct D3D11RenderProvider;
+class Window;
 
-class RendererD3d11 final : public TiltedPhoques::OverlayRenderHandlerD3D11::Renderer
+class RendererD3d11 final : public UIViewD3D11::Renderer
 {
     friend struct D3D11RenderProvider;
 public:
@@ -33,12 +34,10 @@ public:
     RendererD3d11();
     ~RendererD3d11();
 
-    Result Create(HWND aHwnd, int aWidth, int aHeight) noexcept;
+    Result Create(const Window&) noexcept;
 
-    std::unique_ptr<OverlayApp::RenderProvider> CreateRenderProvider();
-
-    void Begin();
-    void End();
+    void BeginDraw();
+    void EndDraw();
 
     void Resize(int aNewWidth, int aNewHeight);
 
@@ -53,5 +52,4 @@ public:
     CmPtr<ID3D11DeviceContext> m_pDevCtx;
     CmPtr<IDXGISwapChain> m_pSwapchain;
     CmPtr<ID3D11RenderTargetView> m_pRtv;
-    HWND m_pHwnd = nullptr;
 };

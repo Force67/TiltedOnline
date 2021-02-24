@@ -54,6 +54,7 @@ target(name)
         "discord",
         "imgui",
         "cef",
+        "glm",
         "lua",
         "sol2",
         "minhook")

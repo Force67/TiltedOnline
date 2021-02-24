@@ -7,14 +7,15 @@
 
 #include "TiltedOnlineApp.h"
 #include "loader/ExeLoader.h"
+
 #include "Ui.h"
+#include "UIViewD3D11.hpp"
 
 namespace fs = std::filesystem;
 
 constexpr uintptr_t kGameLimit = 0x140000000 + 0x65000000;
 
 extern bool BootstrapGame(TiltedOnlineApp*);
-extern void WINDOWHACK_INIT(TiltedPhoques::OverlayApp* pApp);
 
 TiltedOnlineApp::TiltedOnlineApp(int argc, char** argv)
 {
@@ -45,23 +46,21 @@ TiltedOnlineApp::TiltedOnlineApp(int argc, char** argv)
         }
 
         m_bReselectFlag = result.count("reselect");
-        m_pWindow = MakeUnique<Window>(*this);
-        m_pRenderer = MakeUnique<RendererD3d11>();
     }
     catch (const cxxopts::OptionException& ex)
     {
         m_appState = AppState::kFailed;
         fmt::print("Exception while parsing options: {}\n", ex.what());
     }
+
+    m_pWindow = MakeUnique<Window>(*this);
+    m_pRenderer = MakeUnique<RendererD3d11>();
+    m_pWebApp = MakeUnique<UIApp>();
 }
 
 TiltedOnlineApp::~TiltedOnlineApp()
 {
-    m_pClient->GetBrowser()->GetHost()->CloseBrowser(true);
-
-    if (m_pCefApp)
-        m_pCefApp->Shutdown();
-
+    // explicit
     if (m_pGameClientHandle)
         FreeLibrary(m_pGameClientHandle);
 }
@@ -79,13 +78,17 @@ bool TiltedOnlineApp::Initialize()
         return false;
     }
 
-    if (!m_pWindow->Create(L"TiltedOnline"))
+    OverlayCreateInfo info{};
+    info.highDPI = true;
+    info.processName = L"TPProcess.exe";
+    if (!m_pWindow->Create(L"TiltedOnline") || 
+        !m_pWebApp->Initialize(info))
     {
         return false;
     }
 
-    auto& geom = m_pWindow->GetWindowDimensions();
-    auto res = m_pRenderer->Create(m_pWindow->GetNativeHandle(), geom.x, geom.y);
+    auto& geom = m_pWindow->GetWindowRect();
+    auto res = m_pRenderer->Create(*m_pWindow);
     if (res != RendererD3d11::Result::kSuccess)
     {
         // TODO: log result
@@ -100,16 +103,10 @@ bool TiltedOnlineApp::Initialize()
         return true;
     }
 
-    // everything looks alright, lets launch into space
-    m_pCefApp = MakeUnique<OverlayApp>(m_pRenderer->CreateRenderProvider(), L"TPProcess.exe");
-    m_pCefApp->Initialize(new UiClient(*this, m_pCefApp->HACK_GetRenderProvider()->Create()));
-
-    m_pClient = m_pCefApp->GetClient();
-
-    WINDOWHACK_INIT(m_pCefApp.get());
+    m_pMainView = new UIViewD3D11(m_pRenderer.get());
+    m_pMainView->OpenUrl("https://www.google.es", m_pWindow->GetNativeHandle());
     m_pWindow->Show();
     
-
     return true;
 }
 
@@ -177,7 +174,7 @@ void TiltedOnlineApp::HandleMessage(Window::EventType type)
     {
         if (m_pRenderer->GetSwapChain())
         {
-            auto& geom = m_pWindow->GetWindowDimensions();
+            auto& geom = m_pWindow->GetWindowRect();
             m_pRenderer->Resize(geom.x, geom.y);
         }
     }
@@ -185,17 +182,14 @@ void TiltedOnlineApp::HandleMessage(Window::EventType type)
 
 int32_t TiltedOnlineApp::Exec()
 {
-    m_pClient->Create();
-
-    while (!m_pWindow->ShouldClose())
+    do 
     {
-        m_pRenderer->Begin();
-        m_pClient->Render();
-        m_pRenderer->End();
-
-        // ask for new events
         m_pWindow->PollEvents();
-    }
+        m_pRenderer->BeginDraw();
+        m_pWebApp->DrawFrames();
+        m_pRenderer->EndDraw();
+
+    } while (!m_pWindow->ShouldClose());
 
     return 0;
 }

@@ -47,3 +47,5 @@ struct NiObject : NiRefObject
     virtual void sub_24();
     virtual void sub_25();
 };
+
+static_assert(sizeof(NiObject) == 0x10);

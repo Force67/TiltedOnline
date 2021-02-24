@@ -39,4 +39,5 @@ target("Launcher")
         "tiltedcore",
         "spdlog", 
         "hopscotch-map",
+        "glm",
         "cef")

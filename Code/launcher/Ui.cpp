@@ -3,6 +3,7 @@
 #include "TiltedOnlineApp.h"
 #include "TitleSelect.h"
 
+#if 0
 UiClient::UiClient(TiltedOnlineApp& aApp, TiltedPhoques::OverlayRenderHandler* apHandler) : 
     TiltedPhoques::OverlayClient(apHandler), m_app(aApp)
 {
@@ -33,3 +34,4 @@ bool UiClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser, CefRefPtr
 
     return false;
 }
+#endif

@@ -4,13 +4,11 @@
 
 namespace TiltedPhoques
 {
-    struct OverlayApp;
+    class UIApp;
+class UIView;
 }
 
-struct RenderSystemD3D9;
 struct RenderSystemD3D11;
-
-using TiltedPhoques::OverlayApp;
 
 struct OverlayService
 {
@@ -24,9 +22,10 @@ struct OverlayService
     void Render() const;
     void Reset() const;
 
-    OverlayApp* GetOverlayApp() const noexcept { return m_pOverlay.get(); }
+    TiltedPhoques::UIApp* GetOverlayApp() const noexcept { return m_pOverlay.get(); }
 
 private:
 
-    CefRefPtr<OverlayApp> m_pOverlay{nullptr};
+    CefRefPtr<TiltedPhoques::UIApp> m_pOverlay{nullptr};
+    CefRefPtr<TiltedPhoques::UIView> m_pTestframe = nullptr;
 };

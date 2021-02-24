@@ -176,6 +176,7 @@ void ProcessKeyboard(uint16_t aKey, uint16_t aScanCode, cef_key_event_type_t aTy
     if (!pApp)
         return;
 
+    #if 0
     const auto pClient = pApp->GetClient();
     if (!pClient)
         return;
@@ -185,7 +186,6 @@ void ProcessKeyboard(uint16_t aKey, uint16_t aScanCode, cef_key_event_type_t aTy
         return;
 
     const auto active = pRenderer->IsVisible();
-
     if (aType == KEYEVENT_KEYDOWN && aKey == VK_RCONTROL)
     {
 #if defined(TP_SKYRIM)
@@ -197,12 +197,15 @@ void ProcessKeyboard(uint16_t aKey, uint16_t aScanCode, cef_key_event_type_t aTy
     }
     else if (active)
     {
-        pApp->InjectKey(aType, GetCefModifiers(aKey), aKey, aScanCode);
+        //pApp->InjectKey(aType, GetCefModifiers(aKey), aKey, aScanCode);
     }
+
+    #endif
 }
 
 void ProcessMouseMove(uint16_t aX, uint16_t aY)
 {
+    #if 0
     auto& overlay = *s_pOverlay;
 
     const auto pApp = overlay.GetOverlayApp();
@@ -223,12 +226,14 @@ void ProcessMouseMove(uint16_t aX, uint16_t aY)
     {
         pApp->InjectMouseMove(aX, aY, GetCefModifiers(0));
     }
+    #endif
 }
 
 void ProcessMouseButton(uint16_t aX, uint16_t aY, cef_mouse_button_type_t aButton, bool aDown)
 {   
     auto& overlay = *s_pOverlay;
 
+    #if 0
     const auto pApp = overlay.GetOverlayApp();
     if (!pApp)
         return;
@@ -247,10 +252,13 @@ void ProcessMouseButton(uint16_t aX, uint16_t aY, cef_mouse_button_type_t aButto
     {
         pApp->InjectMouseButton(aX, aY, aButton, !aDown, GetCefModifiers(0));
     }
+    #endif
 }
 
 void ProcessMouseWheel(uint16_t aX, uint16_t aY, int16_t aZ)
 {
+    #if 0
+
     auto& overlay = *s_pOverlay;
 
     const auto pApp = overlay.GetOverlayApp();
@@ -271,10 +279,14 @@ void ProcessMouseWheel(uint16_t aX, uint16_t aY, int16_t aZ)
     {
         pApp->InjectMouseWheel(aX, aY, aZ, GetCefModifiers(0));
     }
+
+    #endif
 }
 
 static LRESULT CALLBACK InputServiceWndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    #if 0
+
     const auto pApp = s_pOverlay->GetOverlayApp();
     if (!pApp)
         return 0;
@@ -304,6 +316,8 @@ static LRESULT CALLBACK InputServiceWndProc(HWND hwnd, UINT uMsg, WPARAM wParam,
     *s_viewportLock = isVisible ? 1 : 0;
 #endif
 
+    #endif
+
     POINT position;
 
     GetCursorPos(&position);
@@ -318,7 +332,8 @@ static LRESULT CALLBACK InputServiceWndProc(HWND hwnd, UINT uMsg, WPARAM wParam,
 
         GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, &input, &size, sizeof(RAWINPUTHEADER));
 
-        if (isVisible)
+
+        if (true)
         {
             auto& imgui = World::Get().ctx<ImguiService>();
             imgui.RawInputHandler(input);
