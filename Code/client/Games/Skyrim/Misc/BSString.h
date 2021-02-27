@@ -12,3 +12,5 @@ private:
     uint16_t length;
     uint16_t capacity;
 };
+
+static_assert(sizeof(BSString) == 16);
