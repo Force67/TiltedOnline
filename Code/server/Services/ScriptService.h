@@ -57,6 +57,9 @@ protected:
     [[nodiscard]] Vector<Script::Player> GetPlayers() const;
     [[nodiscard]] Vector<Script::Npc> GetNpcs() const;
 
+    [[nodiscard]] sol::optional<Script::Player> GetPlayer(uint32_t aId) const;
+    void KickPlayer(uint32_t aId);
+
     template<typename... Args>
     std::tuple<bool, String> CallCancelableEvent(const String& acName, Args&&... args) noexcept;
 

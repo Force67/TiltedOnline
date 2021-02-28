@@ -85,6 +85,12 @@ namespace Script
         return it != mods.end();
     }
 
+    void Player::Kick(const std::string& aMEssage) const noexcept
+    {
+
+        //GamerServer::Get()
+    }
+
     bool Player::RemoveQuest(uint32_t aformId)
     {
         auto* pQuestComponent = m_pWorld->try_get<QuestLogComponent>(m_entity);

@@ -31,6 +31,7 @@ namespace Script
 
         bool AddComponent(sol::object aObject) const override;
         bool HasMod(const std::string& aModName) const noexcept;
+        void Kick(const std::string& aMEssage) const noexcept;
 
         bool RemoveQuest(uint32_t aformId);
         sol::optional<Quest> AddQuest(const std::string aModName, uint32_t aformId);

@@ -54,6 +54,36 @@ Vector<Script::Npc> ScriptService::GetNpcs() const
     return npcs;
 }
 
+sol::optional<Script::Player> ScriptService::GetPlayer(uint32_t aId) const
+{
+    auto playerView = m_world.view<PlayerComponent>();
+
+    auto it = std::find_if(playerView.begin(), playerView.end(), [&](auto aIt) {
+        return World::ToInteger(aIt) == aId;
+    });
+
+
+    if (it != playerView.end())
+        return Script::Player((*it), m_world);
+
+    return sol::nullopt;
+}
+
+void ScriptService::KickPlayer(uint32_t aId) 
+{
+    auto playerView = m_world.view<PlayerComponent>();
+
+    auto it = std::find_if(playerView.begin(), playerView.end(), [&](auto aIt) {
+        return World::ToInteger(aIt) == aId;
+    });
+
+    if (it != playerView.end())
+    {
+        const auto& [playerComponent] = playerView.get((*it));
+        GameServer::Get()->Kick(playerComponent.ConnectionId);
+    }
+}
+
 void ScriptService::Initialize() noexcept
 {
     auto path = TiltedPhoques::GetPath() / "scripts"; 
@@ -222,6 +252,7 @@ void ScriptService::BindTypes(ScriptContext& aContext) noexcept
     playerType["AddQuest"] = &Player::AddQuest;
     playerType["GetQuests"] = &Player::GetQuests;
     playerType["RemoveQuest"] = &Player::RemoveQuest; 
+    playerType["Kick"] = &Player::Kick;
 
     auto questType = aContext.new_usertype<Quest>("Quest", sol::no_constructor);
     questType["id"] = sol::readonly_property(&Quest::GetId);
@@ -236,6 +267,7 @@ void ScriptService::BindTypes(ScriptContext& aContext) noexcept
     worldType["get"] = [this]() { return &m_world; };
     worldType["npcs"] = sol::readonly_property([this]() { return GetNpcs(); });
     worldType["players"] = sol::readonly_property([this]() { return GetPlayers(); });
+    worldType["GetPlayer"] = sol::readonly_property([this](uint32_t aId) { return GetPlayer(aId); });
 
     auto clockType = aContext.new_usertype<EnvironmentService>("Clock", sol::no_constructor);
     clockType["get"] = [this]() { return &m_world.GetEnvironmentService(); };
