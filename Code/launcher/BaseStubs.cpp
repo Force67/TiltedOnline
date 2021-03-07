@@ -16,7 +16,7 @@ static DWORD(WINAPI* RealGetModuleFileNameW)(HMODULE, LPWSTR, DWORD) = nullptr;
 static DWORD(WINAPI* RealGetModuleFileNameA)(HMODULE, LPSTR, DWORD) = nullptr;
 static HMODULE(WINAPI* RealGetModuleHandleW)(LPCWSTR) = nullptr;
 static HMODULE(WINAPI* RealGetModuleHandleA)(LPSTR) = nullptr;
-static NTSTATUS(WINAPI* RealLdrLoadDll)(WCHAR*, ULONG, UNICODE_STRING*, HANDLE*) = nullptr;
+static NTSTATUS(WINAPI* RealLdrLoadDll)(WCHAR*, uint32_t*, UNICODE_STRING*, HANDLE*) = nullptr;
 
 // if the module path functions are called from any TP dll within the TP bin folder we return the real path to TiltedOnline.exe
 bool IsLocalModulePath(void *apAddress)
@@ -137,10 +137,9 @@ HMODULE WINAPI TP_GetModuleHandleA(LPSTR alpModuleName)
     return RealGetModuleHandleA(alpModuleName);
 }
 
-NTSTATUS WINAPI TP_LdrLoadDll(WCHAR *apPathToFile, ULONG aFlags, UNICODE_STRING *apModuleFileName, HANDLE *apModuleHandle)
+NTSTATUS WINAPI TP_LdrLoadDll(WCHAR *apPathToFile, uint32_t *aFlags, UNICODE_STRING *apModuleFileName, HANDLE *apModuleHandle)
 {
-    TP_EMPTY_HOOK_PLACEHOLDER;
-
+    //TP_EMPTY_HOOK_PLACEHOLDER;           
     // will be used in the future to blacklist mods that break ST/FT
     return RealLdrLoadDll(apPathToFile, aFlags, apModuleFileName, apModuleHandle);
 }
@@ -160,7 +159,7 @@ static TiltedPhoques::Initializer s_Init([] {
        MH_CreateHookApi(L"Kernel32.dll", "GetModuleFileNameA", &TP_GetModuleFileNameA, (void**)&RealGetModuleFileNameA);
        MH_CreateHookApi(L"Kernel32.dll", "GetModuleHandleW", &TP_GetModuleHandleW, (void**)&RealGetModuleHandleW);
        MH_CreateHookApi(L"Kernel32.dll", "GetModuleHandleA", &TP_GetModuleHandleA, (void**)&RealGetModuleHandleA);
-      // MH_CreateHookApi(L"ntdll.dll", "LdrLoadDll", &TP_LdrLoadDll, (void**)&RealLdrLoadDll);
+       //MH_CreateHookApi(L"ntdll.dll", "LdrLoadDll", &TP_LdrLoadDll, (void**)&RealLdrLoadDll);
 
        MH_EnableHook(nullptr);
    });

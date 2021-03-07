@@ -12,6 +12,10 @@
 #include "common/BuildInfo.h"
 #include "Utils/Error.h"
 
+#include "LauncherUI.h"
+#include "SharedWindow.h"
+#include "SharedPipeline.h"
+
 Launcher* g_pLauncher = nullptr;
 constexpr uintptr_t kGameLoadLimit = 0x140000000 + 0x70000000;
 
@@ -25,20 +29,41 @@ Launcher* GetLauncher()
 Launcher::Launcher(int argc, char** argv)
 {
     using TiltedPhoques::Debug;
-    // only creates a new console if we aren't started from one
-    Debug::CreateConsole();
 
-    cxxopts::Options options(argv[0], R"(Welcome to the TiltedOnline command line \(^_^)/)");
+    Debug::CreateConsole();
+    ParseCommandline(argc, argv);
+
+    m_pWindow = MakeUnique<SharedWindow>(*this);
+    m_pPipeline = MakeUnique<SharedPipeline>();
+    m_pUI = MakeUnique<LauncherUI>(*m_pWindow, *m_pPipeline);
+
+    g_pLauncher = this;
+}
+
+Launcher::~Launcher()
+{
+    // explicit
+    if (m_pGameClientHandle)
+        FreeLibrary(m_pGameClientHandle);
+
+    g_pLauncher = nullptr;
+}
+
+void Launcher::ParseCommandline(int aArgc, char** aArgv)
+{
+    cxxopts::Options options(aArgv[0], 
+        R"(Welcome to the TiltedOnline command line \(^_^)/)");
 
     std::string gameName = "";
     options.add_options()
         ("h,help", "Display the help message")
         ("v,version", "Display the build version")
-        ("g,game", "game name (SkyrimSE or Fallout4)", cxxopts::value<std::string>(gameName))
+        ("g,game", "game name (SkyrimSE or Fallout4)", 
+            cxxopts::value<std::string>(gameName))
         ("r,reselect", "Reselect the game path");
     try
     {
-        const auto result = options.parse(argc, argv);
+        const auto result = options.parse(aArgc, aArgv);
 
         if (result.count("help"))
         {
@@ -48,8 +73,8 @@ Launcher::Launcher(int argc, char** argv)
         }
 
         if (result.count("version"))
-            fmt::print("TiltedOnline version: " BUILD_BRANCH "@" BUILD_COMMIT 
-                " built on " BUILD_TIMESTAMP "\n");
+            fmt::print("TiltedOnline version: " BUILD_BRANCH "@" 
+                BUILD_COMMIT " built on " BUILD_TIMESTAMP "\n");
 
         if (!gameName.empty())
         {
@@ -71,17 +96,6 @@ Launcher::Launcher(int argc, char** argv)
         m_appState = AppState::kFailed;
         fmt::print("Exception while parsing options: {}\n", ex.what());
     }
-
-    g_pLauncher = this;
-}
-
-Launcher::~Launcher()
-{
-    // explicit
-    if (m_pGameClientHandle)
-        FreeLibrary(m_pGameClientHandle);
-
-    g_pLauncher = nullptr;
 }
 
 const fs::path& Launcher::GetGamePath() const
@@ -102,17 +116,34 @@ bool Launcher::Initialize()
         return false;
     }
 
+    if (!m_pWindow->GetNativeHandle())
+    {
+        FatalError(L"Failed to create window!");
+        return false;
+    }
+
+    const auto result = m_pPipeline->Create(*m_pWindow);
+    if (result != SharedPipeline::Result::kSuccess)
+    {
+        auto errMsg = fmt::format(L"Failed to create pipeline\nError code: {}", 
+            static_cast<int>(result));
+    
+        FatalError(errMsg.c_str());
+        return false;
+    }
+
+    m_pWindow->Show();
+
     // no further initialization needed
     if (m_appState == AppState::kInGame)
     {
         return true;
     }
 
-    // TBD: shared window + context init here
     return true;
 }
 
-void Launcher::StartGame(TitleId aTid)
+void Launcher::RunTitle(TitleId aTid)
 {
     // if the title id isn't unknown launch params take precedence, but
     // this shouldn't happen
@@ -136,6 +167,9 @@ void Launcher::StartGame(TitleId aTid)
 
     Initializer::RunAll();
     start();
+
+
+    __debugbreak();
 }
 
 void Launcher::LoadClient() noexcept
@@ -154,41 +188,29 @@ void Launcher::LoadClient() noexcept
     }
 }
 
+void Launcher::OnResize()
+{
+    if (m_pPipeline->GetSwapChain())
+    {
+        const auto geom = m_pWindow->GetWindowRect();
+        m_pPipeline->Resize(geom);
+    }
+}
+
 int32_t Launcher::Exec() noexcept
 {
     if (m_appState == AppState::kInGame)
     {
-        StartGame(m_titleId);
+        RunTitle(m_titleId);
         return 0;
     }
 
-    // temporary selection code, until we have the new ui:
-    fmt::print("Select game:\n""1) SkyrimSE\n2) Fallout4\n");
-
-    TitleId tid{TitleId::kUnknown};
-
-    int c;
-    while (c = std::getchar())
+    while (m_pWindow->Poll())
     {
-        switch (c)
-        {
-        case '1':
-            tid = TitleId::kSkyrimSE;
-            break;
-        case '2':
-            tid = TitleId::kFallout4;
-            break;
-        case '\n':
-            break;
-        default:
-            fmt::print("Invalid selection. Try again!\n");
-            break;
-        }
-
-        if (tid != TitleId::kUnknown)
-            break;
+        m_pPipeline->BeginDraw();
+        m_pUI->Draw();
+        m_pPipeline->EndDraw();
     }
 
-    StartGame(tid);
     return 0;
 }

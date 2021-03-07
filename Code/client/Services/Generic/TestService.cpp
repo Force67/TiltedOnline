@@ -26,6 +26,8 @@
 
 #include <imgui.h>
 
+constexpr const char kDefaultServerAddress[] = "127.0.0.1:10578";
+
 extern thread_local bool g_overrideFormId;
 
 void __declspec(noinline) TestService::PlaceActorInWorld() noexcept
@@ -132,9 +134,7 @@ void TestService::OnUpdate(const UpdateEvent& acUpdateEvent) noexcept
         if (!s_f7Pressed)
         {
             s_f7Pressed = true;
-
-            static char s_address[256] = "127.0.0.1:10578";
-            m_transport.Connect(s_address);
+            m_transport.Connect(kDefaultServerAddress);
         }
     }
 
@@ -188,21 +188,25 @@ void TestService::OnDraw() noexcept
         uint32_t leftId = pLeftWeapon ? pLeftWeapon->formID : 0;
         uint32_t rightId = pRightWeapon ? pRightWeapon->formID : 0;
 
-        ImGui::InputScalar("Left Item", ImGuiDataType_U32, (void*)&leftId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-        ImGui::InputScalar("Right Item", ImGuiDataType_U32, (void*)&rightId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputScalar("Left Item", ImGuiDataType_U32, (void*)&leftId, nullptr, nullptr, nullptr,
+                           ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputScalar("Right Item", ImGuiDataType_U32, (void*)&rightId, nullptr, nullptr, nullptr,
+                           ImGuiInputTextFlags_ReadOnly);
 
         leftId = pPlayer->magicItems[0] ? pPlayer->magicItems[0]->formID : 0;
         rightId = pPlayer->magicItems[1] ? pPlayer->magicItems[1]->formID : 0;
 
-        ImGui::InputScalar("Right Magic", ImGuiDataType_U32, (void*)&rightId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-        ImGui::InputScalar("Left Magic", ImGuiDataType_U32, (void*)&leftId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputScalar("Right Magic", ImGuiDataType_U32, (void*)&rightId, nullptr, nullptr, nullptr,
+                           ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputScalar("Left Magic", ImGuiDataType_U32, (void*)&leftId, nullptr, nullptr, nullptr,
+                           ImGuiInputTextFlags_ReadOnly);
 
 #if TP_SKYRIM
         uint32_t shoutId = pPlayer->equippedShout ? pPlayer->equippedShout->formID : 0;
 
-        ImGui::InputScalar("Shout", ImGuiDataType_U32, (void*)&shoutId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-#endif  
- 
+        ImGui::InputScalar("Shout", ImGuiDataType_U32, (void*)&shoutId, nullptr, nullptr, nullptr,
+                           ImGuiInputTextFlags_ReadOnly);
+#endif
     }
 
     ImGui::End();

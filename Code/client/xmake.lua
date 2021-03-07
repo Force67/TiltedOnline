@@ -41,7 +41,8 @@ target(name)
         "TiltedReverse",
         "TiltedHooks",
         "TiltedScript",
-        "TiltedUi")
+        "TiltedUi",
+        "ImGuiUi")
 
     add_packages(
         "tiltedcore",

@@ -7,8 +7,9 @@
 #include <d3d11.h>
 
 #include <imgui.h>
-#include "services/Generic/imgui_impl_dx11.h"
-#include "services/Generic/imgui_impl_win32.h"
+
+#include <ImGuiRenderD3D11.hpp>
+#include <ImGuiWin32.hpp>
 
 ImguiService::ImguiService()
     : OnDraw(m_drawSignal)
@@ -24,7 +25,7 @@ void ImguiService::Create(RenderSystemD3D11* apRenderSystem, HWND aHwnd)
     ID3D11Device* d3dDevice = nullptr;
     ID3D11DeviceContext* d3dContext = nullptr;
 
-    // create imgui
+    // create imGui
     ImGui::CreateContext();
 
     auto& io = ImGui::GetIO();
