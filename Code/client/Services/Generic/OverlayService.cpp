@@ -47,17 +47,23 @@ OverlayService::~OverlayService() noexcept
 
 void OverlayService::Create(RenderSystemD3D11* apRenderSystem)
 {
+    #if 1
     m_pOverlay = new OverlayApp(std::make_unique<D3D11RenderProvider>(apRenderSystem));
     m_pOverlay->Initialize();
     m_pOverlay->GetClient()->Create();
+    #endif
 }
 
 void OverlayService::Render() const
 {
+    #if 1
     m_pOverlay->GetClient()->Render();
+    #endif
 }
 
 void OverlayService::Reset() const
 {
+    #if 1
     m_pOverlay->GetClient()->Reset();
+    #endif
 }

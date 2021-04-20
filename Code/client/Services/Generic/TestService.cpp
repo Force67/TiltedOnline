@@ -19,7 +19,10 @@
 #include <BSAnimationGraphManager.h>
 #include <Forms/TESFaction.h>
 
+#include <Camera/PlayerCamera.h>
+
 #include <Forms/TESNPC.h>
+#include <Sky/Sky.h>
 
 #include <Components.h>
 #include <World.h>
@@ -120,6 +123,8 @@ void TestService::RunDiff()
 
 TestService::~TestService() noexcept = default;
 
+#include <cmath>
+
 void TestService::OnUpdate(const UpdateEvent& acUpdateEvent) noexcept
 {
     static std::atomic<bool> s_f8Pressed = false;
@@ -149,6 +154,9 @@ void TestService::OnUpdate(const UpdateEvent& acUpdateEvent) noexcept
     }
     else
         s_f8Pressed = false;
+
+    if (GetAsyncKeyState(VK_F9))
+        ShowCursor(TRUE);
 }
 
 void TestService::OnDraw() noexcept
@@ -157,6 +165,7 @@ void TestService::OnDraw() noexcept
     if (view.empty())
         return;
 
+    #if 0
     ImGui::Begin("Server");
 
     static char s_address[256] = "127.0.0.1:10578";
@@ -176,7 +185,9 @@ void TestService::OnDraw() noexcept
     }
 
     ImGui::End();
+    #endif
 
+    #if 0
     ImGui::Begin("Player");
 
     auto pPlayer = PlayerCharacter::Get();
@@ -206,6 +217,85 @@ void TestService::OnDraw() noexcept
     }
 
     ImGui::End();
+    #endif
+
+    #if 0
+    ImGui::Begin("Weather");
+    if (ImGui::Button("Clear Sky"))
+        Sky::Get()->Reset();
+
+    if (ImGui::Button("None"))
+        Sky::Get()->SetSkyMode(Sky::SkyMode::kNone);
+    if (ImGui::Button("Interior"))
+        Sky::Get()->SetSkyMode(Sky::SkyMode::kInterior);
+    if (ImGui::Button("SkydomeOnly"))
+        Sky::Get()->SetSkyMode(Sky::SkyMode::kSkydomeOnly);
+    if (ImGui::Button("FullSky"))
+        Sky::Get()->SetSkyMode(Sky::SkyMode::kFullSky);
+
+    ImGui::End();
+    #endif
+
+    if (auto* pPlayer = PlayerCharacter::Get())
+    {
+        if (auto* pCam = PlayerCamera::Get())
+        {
+            /*
+                // Compute the projection of the input world point to a viewport point
+    // (fBx,fBy), with port.L <= fBx <= port.R and port.B <= fBy <= port.T.
+    bool WorldPtToScreenPt(const NiPoint3& kPt, float& fBx, float& fBy,
+        float fZeroTolerance = 1e-5f) const;
+
+            */
+
+            //https://github.com/expired6978/SKSE64Plugins/blob/master/hudextension/HUDExtension.cpp#L285
+            //https://github.com/SlavicPotato/CBPSSE/blob/5cc5a56e075dc77d96163ca1c3dc18df6d9973f3/CBP/CBP/Renderer.cpp
+
+            // ´NO... YOU HAVE TO USE THE GLOBAL STUFF
+            // WITH THE INTERNAL FUNCTION U MORON
+            // _WorldPtToScreenPt3_Internal(GLOBALMATRIX, GLOBALRECT, ...)
+
+            NiPoint3 screenPos;
+            pCam->WorldPtToScreenPt3(pPlayer->position, screenPos);
+            {
+                auto* pDrawList = ImGui::GetBackgroundDrawList();
+
+                #if 0
+
+                constexpr auto avatarRadius = 13.0f;
+                constexpr auto triangleSize = 10.0f;
+                constexpr auto triangleColor = 0xFFFFFFF;
+
+                const auto pos = ImGui::GetIO().DisplaySize / 2 + ImVec2{x, y} * 200;
+                const auto trianglePos = pos + ImVec2{x, y} * (avatarRadius + 3);
+
+                const ImVec2 trianglePoints[]{trianglePos + ImVec2{0.4f * y, -0.4f * x} * triangleSize,
+                                              trianglePos + ImVec2{1.0f * x, 1.0f * y} * triangleSize,
+                                              trianglePos + ImVec2{-0.4f * y, 0.4f * x} * triangleSize};
+                pDrawList->AddConvexPolyFilled(trianglePoints, 3, triangleColor);
+                #endif
+
+
+                #if 0
+                NiPoint3 to;
+                pCam->WorldPtToScreenPt3(
+                    NiPoint3(pPlayer->position.x + 10.f, pPlayer->position.y + 10.f, pPlayer->position.z + 10.f), to);
+
+                pDrawList->AddLine({screenPos.x, screenPos.y}, {to.x, to.y}, ImColor(0, 230, 64));
+                #endif
+
+                float kWidth = 10.f;
+                float kHeight = 10.f;
+
+                screenPos.y = (10.f + kWidth) * screenPos.y;
+                screenPos.x = (10.f + kHeight) * screenPos.x;
+                
+
+                pDrawList->AddCircleFilled({screenPos.x, screenPos.y}, 100.f, ImColor(0, 230, 64));
+            }
+        }
+    
+    }
 }
 
 
