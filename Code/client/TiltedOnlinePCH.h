@@ -47,6 +47,8 @@
 #include <Debug.hpp>
 #include <ThisCall.hpp>
 
+#define SPDLOG_WCHAR_FILENAMES
+
 #include <entt/entt.hpp>
 #include <spdlog/spdlog.h>
 #include <glm/glm.hpp>
@@ -60,7 +62,7 @@
 #include <fstream>
 
 #include <Utils.h>
-#include <common/BuildInfo.h>
+#include <BuildInfo.h>
 #include <Games/Primitives.h>
 
 

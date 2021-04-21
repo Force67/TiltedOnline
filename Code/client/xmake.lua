@@ -9,13 +9,16 @@ target(name)
     set_pcxxheader("TiltedOnlinePCH.h")
 
     -- exclude game specifc stuff
-    add_headerfiles("**.h|Games/Fallout4/**|Games/Skyrim/**")
-    add_files("**.cpp|Games/Fallout4/**|Games/Skyrim/**")
+    add_headerfiles("**.h|Games/Fallout4/**|Games/Skyrim/**|Services/Vivox/**")
+    add_files("**.cpp|Games/Fallout4/**|Games/Skyrim/**|Services/Vivox/**")
 
     after_install(function(target)
         local linkdir = target:pkg("cef"):get("linkdirs")
         local bindir = path.join(linkdir, "..", "bin")
+        local uidir = path.join(target:scriptdir(), "..", "skyrim_ui", "src")
         os.cp(bindir, target:installdir())
+        os.cp(path.join(uidir, "assets", "images", "cursor.dds"), path.join(target:installdir(), "bin", "assets", "images", "cursor.dds"))
+        os.cp(path.join(uidir, "assets", "images", "cursor.png"), path.join(target:installdir(), "bin", "assets", "images", "cursor.png"))
         os.rm(path.join(target:installdir(), "bin", "**Tests.exe"))
     end)
 
@@ -56,6 +59,16 @@ target(name)
         "minhook",
         "entt",
         "glm")
+
+    if has_config("vivox") then
+        add_files("Services/Vivox/**.cpp")
+        add_headerfiles("Services/Vivox/**.h")
+        add_includedirs("Services/Vivox")
+        add_deps("Vivox")
+        add_defines("TP_VIVOX=1")
+    else
+        add_defines("TP_VIVOX=0")
+    end
 
     add_syslinks(
         "version")

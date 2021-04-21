@@ -24,9 +24,10 @@ target("Launcher")
     add_deps(
         "TiltedReverse",
         "TiltedHooks",
-        "TiltedUi")
+        "TiltedUi",
+        "Common")
     add_syslinks(
-        "user32", 
+        "user32",
         "shell32",
         "comdlg32",
         "bcrypt",

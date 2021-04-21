@@ -52,8 +52,12 @@ Code/protocol/cpp/*.h
 Code/protocol/cpp/*.cc
 Code/skyrimtogether/include/buildver.h
 
+distrib
+
 Libraries/discord_game_sdk
 Libraries/DXSDK
+Libraries/Vivox
+!Libraries/Vivox/xmake.lua
 
 *__pycache__*
 Artifacts/Server
@@ -66,3 +70,5 @@ Artifacts/logs**
 *.vs*
 **/obj/**
 /Setup.bat
+
+Package/

@@ -9,6 +9,11 @@
 
 #include <Systems/RenderSystemD3D11.h>
 
+#include <World.h>
+
+#include <Services/OverlayClient.h>
+#include <Services/TransportService.h>
+
 using TiltedPhoques::OverlayRenderHandlerD3D11;
 using TiltedPhoques::OverlayRenderHandler;
 
@@ -37,7 +42,8 @@ private:
     RenderSystemD3D11* m_pRenderSystem;
 };
 
-OverlayService::OverlayService()
+OverlayService::OverlayService(World& aWorld, TransportService& transport, entt::dispatcher& aDispatcher)
+    : m_world(aWorld), m_transport(transport)
 {
 }
 
@@ -45,23 +51,26 @@ OverlayService::~OverlayService() noexcept
 {
 }
 
-void OverlayService::Create(RenderSystemD3D11* apRenderSystem)
+void OverlayService::Create(RenderSystemD3D11* apRenderSystem) noexcept
 {
-    #if 1
-    m_pOverlay = new OverlayApp(std::make_unique<D3D11RenderProvider>(apRenderSystem));
-    m_pOverlay->Initialize();
+
+    m_pProvider = TiltedPhoques::MakeUnique<D3D11RenderProvider>(apRenderSystem);
+    m_pOverlay = new OverlayApp(m_pProvider.get(), new ::OverlayClient(m_transport, m_pProvider->Create()));
+
+    if (!m_pOverlay->Initialize())
+        spdlog::error("Overlay could not be initialised");
+
     m_pOverlay->GetClient()->Create();
-    #endif
 }
 
-void OverlayService::Render() const
+void OverlayService::Render() const noexcept
 {
     #if 1
     m_pOverlay->GetClient()->Render();
     #endif
 }
 
-void OverlayService::Reset() const
+void OverlayService::Reset() const noexcept
 {
     #if 1
     m_pOverlay->GetClient()->Reset();

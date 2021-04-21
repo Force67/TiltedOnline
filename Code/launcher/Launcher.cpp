@@ -7,12 +7,20 @@
 
 #include "Launcher.h"
 #include "SteamSupport.h"
-#include "loader/ExeLoader.h"
-#include "common/BuildInfo.h"
 
+#include "loader/ExeLoader.h"
+#include <BuildInfo.h>
+#include "Utils/Error.h"
+
+Launcher* g_pLauncher = nullptr;
 constexpr uintptr_t kGameLoadLimit = 0x140000000 + 0x70000000;
 
-extern bool BootstrapGame(Launcher* apLauncher);
+extern void BootstrapGame(Launcher* apLauncher);
+
+Launcher* GetLauncher() 
+{
+    return g_pLauncher;
+}
 
 Launcher::Launcher(int argc, char** argv)
 {
@@ -40,8 +48,7 @@ Launcher::Launcher(int argc, char** argv)
         }
 
         if (result.count("version"))
-            fmt::print("TiltedOnline version: " BUILD_BRANCH "@" BUILD_COMMIT 
-                " built on " BUILD_TIMESTAMP "\n");
+            fmt::print("TiltedOnline version: " BUILD_BRANCH "@" BUILD_COMMIT "\n");
 
         if (!gameName.empty())
         {
@@ -63,13 +70,17 @@ Launcher::Launcher(int argc, char** argv)
         m_appState = AppState::kFailed;
         fmt::print("Exception while parsing options: {}\n", ex.what());
     }
+
+    g_pLauncher = this;
 }
 
 Launcher::~Launcher()
 {
     // explicit
-    if (m_pGameClientHandle)
-        FreeLibrary(m_pGameClientHandle);
+    if (m_pClientHandle)
+        FreeLibrary(m_pClientHandle);
+
+    g_pLauncher = nullptr;
 }
 
 const fs::path& Launcher::GetGamePath() const
@@ -100,6 +111,23 @@ bool Launcher::Initialize()
     return true;
 }
 
+void Launcher::InitPathEnvironment() noexcept
+{
+    auto appPath = TiltedPhoques::GetPath();
+    SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_USER_DIRS);
+    AddDllDirectory(appPath.c_str());
+    AddDllDirectory(m_gamePath.c_str());
+    SetCurrentDirectoryW(m_gamePath.c_str());
+
+     std::wstring pathBuf;
+    pathBuf.resize(32768);
+    GetEnvironmentVariableW(L"PATH", pathBuf.data(), static_cast<DWORD>(pathBuf.length()));
+
+    // append bin & game directories
+    std::wstring newPath = appPath.native() + L";" + m_gamePath.native() + L";" + pathBuf;
+    SetEnvironmentVariableW(L"PATH", newPath.c_str());
+}
+
 void Launcher::StartGame(TitleId aTid)
 {
     // if the title id isn't unknown launch params take precedence, but
@@ -112,9 +140,7 @@ void Launcher::StartGame(TitleId aTid)
         if (!FindTitlePath(m_titleId, m_bReselectFlag, m_gamePath, m_exePath))
             return;
 
-        if (!BootstrapGame(this))
-            return;
-
+        InitPathEnvironment();
         SteamLoad(m_titleId, m_gamePath);
 
         ExeLoader loader(kGameLoadLimit, GetProcAddress);
@@ -131,16 +157,23 @@ void Launcher::StartGame(TitleId aTid)
 void Launcher::LoadClient() noexcept
 {
     WString clientName = ToClientName(m_titleId);
+    fs::path clientDll = TiltedPhoques::GetPath() / clientName;
+    fs::path cefDll = TiltedPhoques::GetPath() / L"libcef.dll";
 
-    auto clientPath = TiltedPhoques::GetPath() / clientName;
-    m_pGameClientHandle = LoadLibraryW(clientPath.c_str());
-
-    if (!m_pGameClientHandle)
+    if (!(m_pClientHandle = LoadLibraryW(clientDll.c_str())))
     {
-        auto errMsg = fmt::format(L"Unable to load the client!\nError Code: {}\nPath: {}", 
-            GetLastError(), clientPath.native());
+        if (!fs::exists(cefDll))
+        {
+            auto msg = fmt::format(L"Failed to load client\nLooks like CEF dlls are missing!\nPath: {}\nSuggested fix: "
+                                   L"Run xmake install -o package", clientDll.native());
+            FatalError(msg.c_str());
+        }
+        else
+        {
+            auto msg = fmt::format(L"Failed to load client\nPath: {}", clientDll.native());
+            FatalError(msg.c_str());
+        }
 
-        MessageBoxW(nullptr, errMsg.c_str(), L"TiltedOnline", MB_OK);
         TerminateProcess(GetCurrentProcess(), 0);
     }
 }

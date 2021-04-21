@@ -17,6 +17,7 @@
 #include <Services/EnvironmentService.h>
 #include <Services/QuestService.h>
 #include <Services/PartyService.h>
+#include <Services/ActorService.h>
 
 #include <Events/PreUpdateEvent.h>
 #include <Events/UpdateEvent.h>
@@ -29,8 +30,8 @@ World::World()
 {
     set<DiscoveryService>(*this, m_dispatcher);
     set<EntityService>(*this, m_dispatcher);
-    set<OverlayService>();
-    set<InputService>(set<OverlayService>());
+    set<OverlayService>(*this, m_transport, m_dispatcher);
+    set<InputService>(ctx<OverlayService>());
     set<CharacterService>(*this, m_dispatcher, m_transport);
     set<TestService>(m_dispatcher, *this, m_transport, ctx<ImguiService>());
     set<ScriptService>(*this, m_dispatcher, ctx<ImguiService>(), m_transport);
@@ -39,6 +40,7 @@ World::World()
     set<EnvironmentService>(*this, m_dispatcher);
     set<QuestService>(*this, m_dispatcher, ctx<ImguiService>());
     set<PartyService>(m_dispatcher, ctx<ImguiService>(), m_transport);
+    set<ActorService>(*this, m_dispatcher, m_transport);
 }
 
 World::~World() = default;
