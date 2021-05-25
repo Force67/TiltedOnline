@@ -137,9 +137,9 @@ static_assert(offsetof(GameArray<int>, length) == 0x8);
 
 struct NiRefObject
 {
-    virtual ~NiRefObject();
+    virtual ~NiRefObject() = default;
 
-    virtual void Destroy();
+    virtual void DeleteThis();
 
     void IncRef();
     void DecRef();
@@ -158,7 +158,7 @@ struct BSHandleRefObject : NiRefObject
     void DecRefHandle()
     {
         if ((InterlockedDecrement(&refCount) & 0x3FF) == 0)
-            Destroy();
+            DeleteThis();
     }
 };
 

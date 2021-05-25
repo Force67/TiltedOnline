@@ -15,7 +15,7 @@ class Launcher
 
     bool Initialize();
     void LoadClient() noexcept;
-    void StartGame(TitleId aTid);
+    void StartGame();
 
     int32_t Exec() noexcept;
 
@@ -24,6 +24,7 @@ class Launcher
 
   private:
     void InitPathEnvironment() noexcept;
+    void ParseCommandline(int argc, char** argv) noexcept;
 
     enum class AppState
     {
@@ -32,7 +33,7 @@ class Launcher
         kInGame,
         kBackground
     } m_appState{AppState::kStarting};
-    TitleId m_titleId{TitleId::kUnknown};
+    const Title* m_pTitle = nullptr;
 
     bool m_bReselectFlag = false;
     HMODULE m_pClientHandle = nullptr;

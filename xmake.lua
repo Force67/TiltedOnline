@@ -1,4 +1,5 @@
 set_xmakever("2.5.3")
+set_policy("build.across_targets_in_parallel", true)
 
 -- c code will use c99,
 -- cxx code will use cxx17 currently, cxx20 soon

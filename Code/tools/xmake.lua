@@ -1,0 +1,20 @@
+
+target("TPTools")
+    set_kind("binary")
+    set_group("Tools")
+    add_includedirs(
+        ".", 
+        "../common",
+        "../creation")
+    add_headerfiles("**.h")
+    add_files("*.cpp")
+    add_deps(
+        "Common",
+        "Creation",
+        "SkyrimEncoding")
+    add_packages(
+        "tiltedcore",
+        "hopscotch-map",
+        "catch2",
+        "mimalloc",
+        "glm")
