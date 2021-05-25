@@ -4,7 +4,7 @@
 
 namespace creation
 {
-    template <typename T> 
+    template <typename T>
     struct BSStringT
     {
         T* buffer;
@@ -35,6 +35,6 @@ namespace creation
 
     using BSStringA = BSStringT<char>;
     using BSStringW = BSStringT<wchar_t>;
-    
+
     static_assert(sizeof(BSStringT<void>) == 0x10);
 } // namespace creation

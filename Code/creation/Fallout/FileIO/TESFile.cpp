@@ -3,12 +3,12 @@
 
 namespace creation
 {
-TESFile::TESFile()
-{
-}
+    TESFile::TESFile()
+    {
+    }
 
-bool TESFile::ReadFormHeader()
-{
+    bool TESFile::ReadFormHeader()
+    {
 #if 0
         if (file->Read(currentForm) != sizeof(FormHeader))
         {
@@ -19,17 +19,17 @@ bool TESFile::ReadFormHeader()
 
         // impelement type check.
 #endif
-    return true;
-}
+        return true;
+    }
 
-bool TESFile::ReadChunkHeader()
-{
-    return false;
-}
+    bool TESFile::ReadChunkHeader()
+    {
+        return false;
+    }
 
-__int64 TESFile::LoadTESInfo(TESFile* self, TESFile* apParentFile)
-{
-    ClearMasterList();
-    return 0;
-}
+    __int64 TESFile::LoadTESInfo(TESFile* self, TESFile* apParentFile)
+    {
+        ClearMasterList();
+        return 0;
+    }
 } // namespace creation

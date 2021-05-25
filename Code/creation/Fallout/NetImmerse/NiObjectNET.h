@@ -5,24 +5,24 @@
 
 namespace creation
 {
-class NiObjectNET : public NiObject
-{
-  public:
-    NiObjectNET() = default;
-    virtual ~NiObjectNET() = default;
-
-    virtual NiRTTI* GetRTTI() override
+    class NiObjectNET : public NiObject
     {
-        return &m_sRTTI;
-    }
+    public:
+        NiObjectNET() = default;
+        virtual ~NiObjectNET() = default;
 
-  private:
-    BSFixedString m_Name;
-    void* pUnk1;
-    void* pUnk2;
+        virtual NiRTTI* GetRTTI() override
+        {
+            return &m_sRTTI;
+        }
 
-    static NiRTTI m_sRTTI;
-};
+    private:
+        BSFixedString m_Name;
+        void* pUnk1;
+        void* pUnk2;
 
-static_assert(sizeof(NiObjectNET) == 0x28);
+        static NiRTTI m_sRTTI;
+    };
+
+    static_assert(sizeof(NiObjectNET) == 0x28);
 } // namespace creation
