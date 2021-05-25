@@ -4,6 +4,7 @@
 
 * [**client/**](./client): Sources for the SkyrimSE and FO4 clients.
 * [**launcher/**](./launcher): Game starter/updater.
+* [**creation/**](./creation): Bits of the creation engine.
 * [**common/**](./common): Common code shared between plugin and server.
 * [**encoding/**](./encoding): Net-message definitions.
 * [**server/**](./server): GameServer implementation.

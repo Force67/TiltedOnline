@@ -19,7 +19,8 @@
 #include <BSAnimationGraphManager.h>
 #include <Forms/TESFaction.h>
 
-#include <Camera/PlayerCamera.h>
+///#include <Camera/PlayerCamera.h>
+#include <NetImmerse/NiCamera.h>
 
 #include <Forms/TESNPC.h>
 #include <Sky/Sky.h>
@@ -159,13 +160,61 @@ void TestService::OnUpdate(const UpdateEvent& acUpdateEvent) noexcept
         ShowCursor(TRUE);
 }
 
+static float (*guimatrix)[4][4] = nullptr;
+static NiRect<float> *guiport = nullptr;
+
+static TiltedPhoques::Initializer s_Init([]() { 
+    POINTER_FALLOUT4(float[4][4], s_matrix, 0x145A66AA0 - 0x140000000);
+    POINTER_FALLOUT4(NiRect<float>, s_port, 0x145A66B30 - 0x140000000);
+
+    guimatrix = s_matrix.Get();
+    guiport = s_port.Get();
+});
+
+#if 0
+using TSeek = __int64 (BSFile*, __int64, int);
+static TSeek* RealSimulateTime;
+
+static int c = 0;
+
+__int64 HookSeek(BSFile* apData, __int64 aiOffset, int aiWhence)
+{
+    if (strstr(apData->GetFileName(), "Fallout4.esm"))
+    {
+        std::printf("Fallout4.esm: Seek to : %lld, (whence: %d), RSP: %p\n", aiOffset, aiWhence, _ReturnAddress());
+
+        if (c > 20)
+            __debugbreak();
+
+        c++;
+    }
+
+   return RealSimulateTime(apData, aiOffset, aiWhence);
+}
+
+static TiltedPhoques::Initializer s_LMAO([]() {
+    POINTER_FALLOUT4(TSeek, s_SimulateTime, 0x141B558F0 - 0x140000000);
+
+    RealSimulateTime = s_SimulateTime.Get();
+    TP_HOOK(&RealSimulateTime, HookSeek);
+});
+#endif
+
+#include <DirectXMath.h>
+
+
+bool HUD_WorldPtToScreenPt3(NiPoint3* in, NiPoint3* out)
+{
+    return NiCamera::WorldPtToScreenPt3((float*)guimatrix, guiport, in, &out->x, &out->y, &out->z, 1e-5f);
+}
+
+
 void TestService::OnDraw() noexcept
 {
     const auto view = m_world.view<FormIdComponent>();
     if (view.empty())
         return;
 
-    #if 0
     ImGui::Begin("Server");
 
     static char s_address[256] = "127.0.0.1:10578";
@@ -185,116 +234,32 @@ void TestService::OnDraw() noexcept
     }
 
     ImGui::End();
-    #endif
 
-    #if 0
-    ImGui::Begin("Player");
 
-    auto pPlayer = PlayerCharacter::Get();
-    if (pPlayer)
+    if (PlayerCharacter* pPlayer = PlayerCharacter::Get())
     {
-        auto pLeftWeapon = pPlayer->GetEquippedWeapon(0);
-        auto pRightWeapon = pPlayer->GetEquippedWeapon(1);
+        auto* pDrawList = ImGui::GetBackgroundDrawList();
 
-        uint32_t leftId = pLeftWeapon ? pLeftWeapon->formID : 0;
-        uint32_t rightId = pRightWeapon ? pRightWeapon->formID : 0;
+        auto position = pPlayer->position;
 
-        ImGui::InputScalar("Left Item", ImGuiDataType_U32, (void*)&leftId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-        ImGui::InputScalar("Right Item", ImGuiDataType_U32, (void*)&rightId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
+        // test scale up to head.
+        position.y -= 200.f;
 
-        leftId = pPlayer->magicItems[0] ? pPlayer->magicItems[0]->formID : 0;
-        rightId = pPlayer->magicItems[1] ? pPlayer->magicItems[1]->formID : 0;
+        NiPoint3 out{};
+        HUD_WorldPtToScreenPt3(&pPlayer->position, &out);
 
-        ImGui::InputScalar("Right Magic", ImGuiDataType_U32, (void*)&rightId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-        ImGui::InputScalar("Left Magic", ImGuiDataType_U32, (void*)&leftId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
+        RECT rect{};
+        GetWindowRect(GetForegroundWindow(), &rect);
 
-#if TP_SKYRIM
-        uint32_t shoutId = pPlayer->equippedShout ? pPlayer->equippedShout->formID : 0;
+        // transpose to screen
+        ImVec2 screenPos = ImVec2{
+            ((rect.right - rect.left) * out.x) + rect.left,
+            ((rect.bottom - rect.top) * (1.0f - out.y)) + rect.top,
+        };
 
-        ImGui::InputScalar("Shout", ImGuiDataType_U32, (void*)&shoutId, nullptr, nullptr, nullptr, ImGuiInputTextFlags_ReadOnly);
-#endif  
- 
-    }
-
-    ImGui::End();
-    #endif
-
-    #if 0
-    ImGui::Begin("Weather");
-    if (ImGui::Button("Clear Sky"))
-        Sky::Get()->Reset();
-
-    if (ImGui::Button("None"))
-        Sky::Get()->SetSkyMode(Sky::SkyMode::kNone);
-    if (ImGui::Button("Interior"))
-        Sky::Get()->SetSkyMode(Sky::SkyMode::kInterior);
-    if (ImGui::Button("SkydomeOnly"))
-        Sky::Get()->SetSkyMode(Sky::SkyMode::kSkydomeOnly);
-    if (ImGui::Button("FullSky"))
-        Sky::Get()->SetSkyMode(Sky::SkyMode::kFullSky);
-
-    ImGui::End();
-    #endif
-
-    if (auto* pPlayer = PlayerCharacter::Get())
-    {
-        if (auto* pCam = PlayerCamera::Get())
-        {
-            /*
-                // Compute the projection of the input world point to a viewport point
-    // (fBx,fBy), with port.L <= fBx <= port.R and port.B <= fBy <= port.T.
-    bool WorldPtToScreenPt(const NiPoint3& kPt, float& fBx, float& fBy,
-        float fZeroTolerance = 1e-5f) const;
-
-            */
-
-            //https://github.com/expired6978/SKSE64Plugins/blob/master/hudextension/HUDExtension.cpp#L285
-            //https://github.com/SlavicPotato/CBPSSE/blob/5cc5a56e075dc77d96163ca1c3dc18df6d9973f3/CBP/CBP/Renderer.cpp
-
-            // ´NO... YOU HAVE TO USE THE GLOBAL STUFF
-            // WITH THE INTERNAL FUNCTION U MORON
-            // _WorldPtToScreenPt3_Internal(GLOBALMATRIX, GLOBALRECT, ...)
-
-            NiPoint3 screenPos;
-            pCam->WorldPtToScreenPt3(pPlayer->position, screenPos);
-            {
-                auto* pDrawList = ImGui::GetBackgroundDrawList();
-
-                #if 0
-
-                constexpr auto avatarRadius = 13.0f;
-                constexpr auto triangleSize = 10.0f;
-                constexpr auto triangleColor = 0xFFFFFFF;
-
-                const auto pos = ImGui::GetIO().DisplaySize / 2 + ImVec2{x, y} * 200;
-                const auto trianglePos = pos + ImVec2{x, y} * (avatarRadius + 3);
-
-                const ImVec2 trianglePoints[]{trianglePos + ImVec2{0.4f * y, -0.4f * x} * triangleSize,
-                                              trianglePos + ImVec2{1.0f * x, 1.0f * y} * triangleSize,
-                                              trianglePos + ImVec2{-0.4f * y, 0.4f * x} * triangleSize};
-                pDrawList->AddConvexPolyFilled(trianglePoints, 3, triangleColor);
-                #endif
-
-
-                #if 0
-                NiPoint3 to;
-                pCam->WorldPtToScreenPt3(
-                    NiPoint3(pPlayer->position.x + 10.f, pPlayer->position.y + 10.f, pPlayer->position.z + 10.f), to);
-
-                pDrawList->AddLine({screenPos.x, screenPos.y}, {to.x, to.y}, ImColor(0, 230, 64));
-                #endif
-
-                float kWidth = 10.f;
-                float kHeight = 10.f;
-
-                screenPos.y = (10.f + kWidth) * screenPos.y;
-                screenPos.x = (10.f + kHeight) * screenPos.x;
-                
-
-                pDrawList->AddCircleFilled({screenPos.x, screenPos.y}, 100.f, ImColor(0, 230, 64));
-            }
-        }
-    
+        // IT WORKS!
+        ImGui::GetBackgroundDrawList()->AddText(screenPos, ImColor::ImColor(255.f, 0.f, 0.f),
+                                                "Forseeee to the moon");
     }
 }
 

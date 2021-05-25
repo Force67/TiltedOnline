@@ -1,10 +1,11 @@
 
-target("Common")
+target("Creation")
     add_configfiles("BuildInfo.h.in")
     set_kind("static")
     set_group("common")
     add_includedirs(
         ".", 
+        "Fallout",
         "../", 
         "../../build", 
         {public = true})

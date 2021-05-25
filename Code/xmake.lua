@@ -7,6 +7,8 @@ if is_plat("windows") then
 end
 
 includes("common")
+includes("creation")
 includes("server")
 includes("encoding")
 includes("tests")
+includes("tools")

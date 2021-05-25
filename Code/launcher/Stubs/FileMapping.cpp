@@ -151,7 +151,6 @@ NTSTATUS WINAPI TP_LdrLoadDll(const wchar_t* apPath, uint32_t* apFlags, UNICODE_
         }
     }
 
-    // will be used in the future to blacklist mods that break ST/FT
     return RealLdrLoadDll(apPath, apFlags, apFileName, apHandle);
 }
 

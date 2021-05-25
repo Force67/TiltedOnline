@@ -10,7 +10,7 @@ void NiRefObject::IncRef()
 void NiRefObject::DecRef()
 {
     if (Release())
-        Destroy();
+        DeleteThis();
 }
 
 bool NiRefObject::Release()
