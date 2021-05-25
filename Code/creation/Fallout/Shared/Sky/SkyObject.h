@@ -1,20 +1,26 @@
 #pragma once
 
+#include "NetImmerse/NiNode.h"
+#include "NetImmerse/NiPointer.h"
+
 namespace creation
 {
-class NiNode;
+    class Sky;
 
-class SkyObject
-{
-  public:
-    SkyObject();
+    class SkyObject
+    {
+    public:
+        SkyObject() = default;
+        virtual ~SkyObject() = default;
 
-    virtual ~SkyObject() = default;
-    virtual NiNode* GetRootNode() = 0;
-    virtual void Initialize(int param) = 0;
+        // Moved to non virtual from Skyrim
+        void Init(NiNode* apRoot);
 
-  private:
-    // actually a nipointer
-    NiNode* m_pRootNode;
-};
+        virtual NiNode* GetRoot();
+        virtual void Update(Sky* apSky, float aTick) {};
+    private:
+        NiPointer<NiNode> m_pRootNode;
+    };
+
+    static_assert(sizeof(SkyObject) == 16);
 } // namespace creation

@@ -3,7 +3,7 @@
 #include "TESFileRecord.h"
 #include <cstdint>
 
-#include "BSCore/BSArray.h"
+#include "BSCore/BSTArray.h"
 #include "BSCore/BSList.h"
 #include "BSCore/BSString.h"
 

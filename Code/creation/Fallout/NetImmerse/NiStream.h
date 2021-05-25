@@ -11,5 +11,5 @@ namespace creation
 
     private:
     };
-    static_assert(sizeof(NiRefObject) == 0x10);
+
 } // namespace creation

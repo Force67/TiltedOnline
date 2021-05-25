@@ -4,10 +4,11 @@
 
 namespace creation
 {
-    template <typename T> class NiPointer
+    template <typename T> 
+    class NiPointer
     {
     public:
-        NiRefObject() : m_pObject(nullptr)
+        NiPointer() : m_pObject(nullptr)
         {
         }
 
@@ -51,7 +52,7 @@ namespace creation
             return m_pObject != pRhs;
         }
 
-        NiRefObject* getPtr() const
+        T* getPtr() const
         {
             return m_pObject;
         }
@@ -60,6 +61,5 @@ namespace creation
         T* m_pObject;
     };
 
-    // ensure that it aligns to 8
-    // static_assert(sizeof(NiPointer<NiRefObject>) == 8);
+    static_assert(sizeof(NiPointer<NiRefObject>) == 8);
 } // namespace creation
