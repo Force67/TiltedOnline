@@ -1,13 +1,29 @@
 #pragma once
 
-#include <Sky/SkyObject.h>
+#include "BSCore/BSFixedString.h"
+#include "Shared/Sky/SkyObject.h"
 
-class Precipitation : public SkyObject
+namespace creation
 {
-  public:
-    virtual ~Precipitation() = default;
+    class Precipitation final : public SkyObject
+    {
+    public:
+        Precipitation() = default;
+        virtual ~Precipitation() = default;
 
-    char pad_0[128];
-};
+        void Update(Sky* apSky, float aTick) override;
 
-static_assert(sizeof(Precipitation) == 144);
+    private:
+        char pad0[0x60];
+        BSFixedString m_waterName;
+        char padx[0x8];
+        NiPointer<BSGeometry> m_pGeometry1;
+        NiPointer<BSGeometry> m_pGemetry2;
+        float m_fSize;
+        float m_fdensity1;
+        float m_funk3;
+        float m_fWetness;
+    };
+
+    static_assert(sizeof(Precipitation) == 0xA0);
+}

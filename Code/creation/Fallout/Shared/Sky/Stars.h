@@ -1,13 +1,21 @@
 #pragma once
 
-#include <Sky/SkyObject.h>
+#include "Shared/Sky/SkyObject.h"
 
-class Stars : public SkyObject
+namespace creation
 {
-  public:
-    virtual ~Stars() = default;
+    class Stars final : public SkyObject
+    {
+    public:
+        Stars() = default;
+        virtual ~Stars() = default;
 
-    char pad0[12];
-};
+        void Update(Sky* apSky, float aTick) override;
 
-static_assert(sizeof(Stars) == 32);
+    private:
+        NiPointer<NiNode> m_pStarNode;
+        float m_fAlpha = 0.f;
+    };
+
+    static_assert(sizeof(Stars) == 0x20);
+}

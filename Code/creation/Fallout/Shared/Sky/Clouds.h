@@ -1,13 +1,28 @@
 #pragma once
 
-#include <Sky/SkyObject.h>
+#include "NetImmerse/NiColor.h"
+#include "Shared/Sky/SkyObject.h"
 
-class Clouds : public SkyObject
+namespace creation
 {
-  public:
-    virtual ~Clouds() = default;
+    class NiTexture;
 
-    char pad_0[1312 - 16];
-};
+    class Clouds final : public SkyObject
+    {
+    public:
+        Clouds() = default;
+        virtual ~Clouds() = default;
 
-static_assert(sizeof(Clouds) == 1312);
+        void Update(Sky* apSky, float aTick) override;
+    private:
+        NiPointer<BSGeometry> m_pCloudGeometry[32];
+        char pad32[8 * 32]{}; // This is some other array
+        NiPointer<NiTexture> m_pTextures[32];
+        NiColor m_ColorArray[32]{};
+        float m_fAlphas[32]{ 0.f };
+        uint16_t unk4 = 0;
+        bool m_bUpdate = false;
+    };
+
+    static_assert(sizeof(Clouds) == 0x518);
+}
