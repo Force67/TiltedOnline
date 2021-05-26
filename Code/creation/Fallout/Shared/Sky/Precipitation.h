@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BSCore/BSFixedString.h"
+#include "BSMain/Setting.h"
 #include "Shared/Sky/SkyObject.h"
 
 namespace creation
@@ -23,6 +24,13 @@ namespace creation
         float m_fdensity1;
         float m_funk3;
         float m_fWetness;
+
+        static INISetting bRainSplash;
+        static INISetting uMaxRainSplashPerFrame;
+        static INISetting uRainSplashBufferSize;
+        static INISetting fMinSplashSize;
+        static INISetting fMaxSplashSize;
+        static INISetting fDensityDistModifier;
     };
 
     static_assert(sizeof(Precipitation) == 0xA0);
