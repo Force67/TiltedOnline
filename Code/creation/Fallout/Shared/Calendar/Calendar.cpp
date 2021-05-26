@@ -20,9 +20,22 @@ namespace creation
 
     Calendar::Calendar()
     {
-        // TODO: set globals
+        m_pGameYear = TESForm::GetFormById<TESGlobal>(FormType::kYear);
+        m_pGameMonth = TESForm::GetFormById<TESGlobal>(FormType::kMonth);
+        m_pGameDay = TESForm::GetFormById<TESGlobal>(FormType::kDay);
+        m_pGameHour = TESForm::GetFormById<TESGlobal>(FormType::kHour);
+        m_pGameDaysPassed = TESForm::GetFormById<TESGlobal>(FormType::kDayCounter);
+        m_pTimeScale = TESForm::GetFormById<TESGlobal>(FormType::kTimeScale);
 
+        m_pGameDaysPassed->value = (m_pGameHour->value * 0.041666668) + m_pGameDaysPassed->value;
     }
+
+     // proves that the compiler divides by 12
+    constexpr float y = 0.041666668 * 24;
+    // value / 12 * 0.5
+
+    constexpr float z = 0.00027777778f * 60 / 1000;
+    // proves a division by 1/60
 
     Calendar* Calendar::GetInstance()
     {

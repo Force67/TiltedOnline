@@ -16,7 +16,7 @@ namespace creation
     private:
         static Calendar* s_mpInstance;
 
-        uint32_t pad0;
+        uint32_t pad0 = 0;
         TESGlobal* m_pGameYear;
         TESGlobal* m_pGameMonth;
         TESGlobal* m_pGameDay;

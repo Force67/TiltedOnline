@@ -6,9 +6,15 @@
 namespace creation
 {
     // TODO: move to inl
-    enum FormType
+    enum FormType : int
     {
         kGlobal = 11,
+        kYear = 53,
+        kMonth = 54,
+        kDay = 55,
+        kHour = 56,
+        kDayCounter = 57,
+        kTimeScale = 58
     };
 
     class TESForm : public BaseFormComponent
@@ -17,6 +23,15 @@ namespace creation
         virtual void InitializeDataComponent() override {}
         virtual void ClearDataComponent() override {}
         virtual void CopyComponent(BaseFormComponent *apBase) {} // TODO: impl
+
+        template<typename T>
+        static T* GetFormById(FormType aType)
+        {
+            return reinterpret_cast<T*>(GetFormByIdImpl(aType));
+        }
+
+    private:
+        static TESForm* GetFormByIdImpl(FormType aType);
 
     protected:
         const void* m_pFileList;
