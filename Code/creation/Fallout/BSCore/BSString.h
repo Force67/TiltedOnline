@@ -7,9 +7,9 @@ namespace creation
     template <typename T>
     struct BSStringT
     {
-        T* buffer;
-        uint16_t length;
-        uint16_t capacity;
+        T* buffer = nullptr;
+        uint16_t length = 0;
+        uint16_t capacity = 0;
 
         // inlined by the game.
         inline uint16_t GetLength() const
