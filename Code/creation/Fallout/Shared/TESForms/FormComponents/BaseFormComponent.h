@@ -1,13 +1,19 @@
 #pragma once
 
-struct BaseFormComponent
+namespace creation
 {
-    virtual ~BaseFormComponent();
+    class TESForm;
 
-    virtual void Init();
-    virtual void ReleaseRefs();
-    virtual void CopyFromBase(BaseFormComponent* apBase);
-    virtual void sub_4();
-    virtual void sub_5();
-    virtual void sub_6();
-};
+    class BaseFormComponent
+    {
+    public:
+        virtual ~BaseFormComponent() = default;
+
+        virtual int GetFormComponentType() { return 0; }
+        virtual void InitializeDataComponent() {}
+        virtual void ClearDataComponent() {}
+        virtual void InitComponent(TESForm* apForm) {}
+        virtual void CopyComponent(BaseFormComponent* apBase, TESForm* apForm) {}
+        virtual void CopyComponent(BaseFormComponent* apBase) {}
+    };
+}
