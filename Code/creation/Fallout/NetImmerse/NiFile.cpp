@@ -3,11 +3,10 @@
 
 namespace creation
 {
-    NiFile::NiFile(const char* fileName, OpenMode mode, size_t bufferSize) : 
-        openMode(mode), bufferAllocSize(bufferSize)
+    NiFile::NiFile(const char* fileName, OpenMode mode, size_t bufferSize) : openMode(mode), bufferAllocSize(bufferSize)
     {
         BSSystemFile::AccessMode accessMode;
-        BSSystemFile::OpenMode openMode{BSSystemFile::OpenMode::kNone};
+        BSSystemFile::OpenMode openMode{ BSSystemFile::OpenMode::kNone };
 
         switch (mode)
         {
@@ -34,7 +33,7 @@ namespace creation
         // move file handle
         if (good)
             file = osFile;
-        
+
         if (good && bufferSize)
             buffer = reinterpret_cast<char*>(malloc(bufferSize)); // NI ALLOC
     }
@@ -162,7 +161,7 @@ namespace creation
             bufferSize = ReadImpl(buffer, bufferAllocSize);
             if (bufferSize < readLength)
                 readLength = bufferSize;
-            
+
             std::memcpy(bufferPointer, &buffer[bufferPos], readLength);
             bufferPos += readLength;
             return offset + readLength;
@@ -180,8 +179,7 @@ namespace creation
         size_t offset = 0;
 
         // modern c++ is fun!
-        char* bufferPointer = static_cast<char*>(
-            const_cast<void*>(writeBuffer));
+        char* bufferPointer = static_cast<char*>(const_cast<void*>(writeBuffer));
 
         if (writeLength <= count)
         {
@@ -203,7 +201,7 @@ namespace creation
         {
             if (writeLength >= bufferAllocSize)
                 return offset + WriteImpl(bufferPointer, writeLength);
-            
+
             std::memcpy(buffer, bufferPointer, writeLength);
             bufferPos += writeLength;
             return offset + writeLength;
@@ -212,10 +210,10 @@ namespace creation
         return 0;
     }
 
-    size_t NiFile::GetFileSize() 
+    size_t NiFile::GetFileSize()
     {
         size_t count = 0;
         file.GetSize(&count);
         return count;
     }
-}
+} // namespace creation

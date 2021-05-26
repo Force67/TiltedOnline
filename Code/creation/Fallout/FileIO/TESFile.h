@@ -1,11 +1,11 @@
 #pragma once
 
-#include <cstdint>
 #include "TESFileRecord.h"
+#include <cstdint>
 
-#include "BSCore/BSString.h"
-#include "BSCore/BSArray.h"
+#include "BSCore/BSTArray.h"
 #include "BSCore/BSList.h"
+#include "BSCore/BSString.h"
 
 #include "FileIO/BSFile.h"
 
@@ -16,7 +16,7 @@ namespace creation
         uint64_t x;
         uint64_t ModifyTime;
         uint64_t CreateTime;
-  /* 0x0018 */ uint64_t uiFileSize;
+        /* 0x0018 */ uint64_t uiFileSize;
     }; /* size: 0x0020 */
 
     class TESFile
@@ -25,6 +25,7 @@ namespace creation
         TESFile();
 
         __int64 LoadTESInfo(TESFile* self, TESFile* apParentFile);
+
     private:
         void ClearMasterList();
 

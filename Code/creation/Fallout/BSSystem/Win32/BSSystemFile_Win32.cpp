@@ -1,6 +1,6 @@
 
-#include <Windows.h>
 #include "BSSystem/BSSystemFile.h"
+#include <Windows.h>
 
 namespace creation
 {
@@ -24,10 +24,11 @@ namespace creation
                 return BSSystemFile::Error::kBusy;
             }
         }
-    }
+    } // namespace
 
     BSSystemFile::BSSystemFile() : m_flags(1), m_pHandle(INVALID_HANDLE_VALUE)
-    {}
+    {
+    }
 
     BSSystemFile::BSSystemFile(const char* name, AccessMode amode, OpenMode omode, bool async, uint32_t sizehint, bool unk8)
     {
@@ -95,15 +96,15 @@ namespace creation
             if (m_flags & 0x1Eu)
                 flagAttributes = 0x28000000;
         }
- 
-        m_pHandle = ::CreateFileA(path, desiredAccess, FILE_SHARE_READ, 
-            nullptr, creationDisposition, flagAttributes, nullptr);
+
+        m_pHandle =
+            ::CreateFileA(path, desiredAccess, FILE_SHARE_READ, nullptr, creationDisposition, flagAttributes, nullptr);
 
         // if we fail, try again in create mode
         if (m_pHandle == INVALID_HANDLE_VALUE && openMode == OpenMode::kAppend)
         {
-            m_pHandle = ::CreateFileA(path, desiredAccess, FILE_SHARE_READ, 
-                nullptr, CREATE_ALWAYS, flagAttributes, nullptr);
+            m_pHandle =
+                ::CreateFileA(path, desiredAccess, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, flagAttributes, nullptr);
         }
 
         if (m_pHandle == INVALID_HANDLE_VALUE)
@@ -114,7 +115,7 @@ namespace creation
         // if we are not busy.
         if (openMode == OpenMode::kAppend && (!m_flags & 0x80000000))
         {
-            LARGE_INTEGER position{0};
+            LARGE_INTEGER position{ 0 };
             if (!SetFilePointerEx(m_pHandle, position, &position, FILE_END))
             {
                 return TranslateError(::GetLastError());
@@ -148,8 +149,7 @@ namespace creation
         if (m_flags & 0x80000000)
             return Error::kBusy;
 
-        if (::ReadFile(m_pHandle, buffer, static_cast<DWORD>(length), 
-            reinterpret_cast<LPDWORD>(numRead), nullptr))
+        if (::ReadFile(m_pHandle, buffer, static_cast<DWORD>(length), reinterpret_cast<LPDWORD>(numRead), nullptr))
         {
             return Error::kSuccess;
         }
@@ -161,11 +161,11 @@ namespace creation
     {
         *numWritten = 0u;
 
-         // file is busy
+        // file is busy
         if (m_flags & 0x80000000)
             return Error::kBusy;
 
-        if (::WriteFile(m_pHandle, buffer, static_cast<DWORD>(length), reinterpret_cast<LPDWORD>(numWritten), nullptr)) 
+        if (::WriteFile(m_pHandle, buffer, static_cast<DWORD>(length), reinterpret_cast<LPDWORD>(numWritten), nullptr))
         {
             return Error::kSuccess;
         }
@@ -173,7 +173,7 @@ namespace creation
         return TranslateError(::GetLastError());
     }
 
-    BSSystemFile::Error BSSystemFile::GetSizeImpl(size_t *size)
+    BSSystemFile::Error BSSystemFile::GetSizeImpl(size_t* size)
     {
         LARGE_INTEGER FileSize;
         if (::GetFileSizeEx(m_pHandle, &FileSize))
@@ -236,4 +236,4 @@ namespace creation
         m_flags |= result;
         return result;
     }
-}
+} // namespace creation
