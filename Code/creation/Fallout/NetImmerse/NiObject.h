@@ -171,6 +171,11 @@ namespace creation
         }
 
     private:
+        // disable copy
+        NiObject(const NiObject& kObject) = delete;
+        NiObject& operator=(const NiObject& kObject) = delete;
+
+    private:
         static NiRTTI m_sRTTI;
     };
 

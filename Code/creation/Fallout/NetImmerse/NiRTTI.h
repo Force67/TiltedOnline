@@ -7,23 +7,23 @@ namespace creation
     class NiRTTI
     {
     public:
-        NiRTTI(const char* pName, const NiRTTI* pBaseRttiInfo) : m_pName(pName), m_pBaseRTTI(pBaseRttiInfo)
+        NiRTTI(const char* pcName, const NiRTTI* pkBaseRTTI) : m_pcName(pcName), m_pkBaseRTTI(pkBaseRTTI)
         {
         }
 
-        const char* GetName() const
+        inline const char* GetName() const
         {
-            return m_pName;
+            return m_pcName;
         }
 
-        const NiRTTI* GetBaseRTTI() const
+        inline const NiRTTI* GetBaseRTTI() const
         {
-            return m_pBaseRTTI;
+            return m_pkBaseRTTI;
         }
 
     private:
-        const char* m_pName;
-        const NiRTTI* m_pBaseRTTI;
+        const char* m_pcName;
+        const NiRTTI* m_pkBaseRTTI;
     };
 
     static_assert(sizeof(NiRTTI) == 16);

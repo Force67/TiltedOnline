@@ -14,6 +14,7 @@ target("Creation")
         "**.inl")
     add_files("**.cpp")
     add_packages(
+        "glm",
         "tiltedcore", 
         "hopscotch-map", 
         "cryptopp")
