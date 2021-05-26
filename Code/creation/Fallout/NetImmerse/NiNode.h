@@ -1,10 +1,10 @@
 #pragma once
 
-#include "NetImmerse/NiObjectNET.h"
+#include "NetImmerse/NiAVObject.h"
 
 namespace creation
 {
-    class NiNode : public NiObjectNET
+    class NiNode : public NiAVObject
     {
     public:
         NiNode() = default;
