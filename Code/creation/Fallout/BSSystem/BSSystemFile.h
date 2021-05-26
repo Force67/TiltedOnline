@@ -2,6 +2,10 @@
 
 #include <cstdint>
 
+#ifdef __linux__
+#include <stddef.h>
+#endif
+
 namespace creation
 {
     class BSSystemFile
@@ -67,7 +71,11 @@ namespace creation
 
     private:
         uint32_t m_flags;
-        void* m_pHandle;
+        union
+        {
+            void* m_pHandle;
+            int32_t m_fileDescriptor;
+        };
     };
 
     static_assert(sizeof(BSSystemFile) == 0x10);
