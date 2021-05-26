@@ -4,7 +4,7 @@
 
 namespace creation
 {
-    template<typename T>
+    template <typename T>
     struct BSStringT
     {
         T* buffer;
@@ -18,11 +18,11 @@ namespace creation
             {
                 if constexpr (std::is_same<T, wchar_t>())
                     return std::wcslen(buffer);
-                
+
                 if constexpr (std::is_same<T, char>())
                     return std::strlen(buffer);
             }
-        
+
             return length;
         }
 

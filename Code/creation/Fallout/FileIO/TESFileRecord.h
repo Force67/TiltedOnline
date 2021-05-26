@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cstdint>
 #include "TESFileRecordTypes.inl"
+#include <cstdint>
 
 #pragma pack(push, 1)
 

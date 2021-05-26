@@ -4,7 +4,7 @@
 
 namespace creation
 {
-    template <class T> 
+    template <class T>
     struct BSList
     {
         struct Entry
@@ -40,7 +40,7 @@ namespace creation
                 return m_pEntry->data;
             }
 
-          private:
+        private:
             Entry* m_pEntry;
         };
 

@@ -1,13 +1,14 @@
 #pragma once
 
-#include "NetImmerse/NiBinaryStream.h"
 #include "BSSystem/BSSystemFile.h"
+#include "NetImmerse/NiBinaryStream.h"
 
 namespace creation
 {
     class NiFile : public NiBinaryStream
     {
         friend class BSSystemFile;
+
     public:
         enum OpenMode
         {
@@ -53,9 +54,9 @@ namespace creation
         size_t currentPos = 0;
         char* buffer = nullptr;
         BSSystemFile file;
-        OpenMode openMode{OpenMode::kReadOnly};
+        OpenMode openMode{ OpenMode::kReadOnly };
         bool good = false;
     };
-    
+
     static_assert(sizeof(NiFile) == 0x50);
 } // namespace creation

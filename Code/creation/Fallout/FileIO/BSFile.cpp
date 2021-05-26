@@ -1,11 +1,11 @@
 
-#include <io.h>
 #include "FileIO/BSFile.h"
+#include <io.h>
 
 namespace creation
 {
-    BSFile::BSFile(const char* fileNameIn, NiFile::OpenMode mode, size_t bufferSize, bool bunk) : 
-        NiFile(fileNameIn, mode, bufferSize)
+    BSFile::BSFile(const char* fileNameIn, NiFile::OpenMode mode, size_t bufferSize, bool bunk)
+        : NiFile(fileNameIn, mode, bufferSize)
     {
         if (std::strlen(fileNameIn) <= 260)
             std::strncpy(fileName, fileNameIn, sizeof(fileName));
@@ -15,7 +15,7 @@ namespace creation
 
         if (((mode - 1) & 0xFFFFFFFD) == 0)
         {
-            Open(false, bunk);        
+            Open(false, bunk);
         }
 
         if (mode == OpenMode::kReadOnly)
@@ -38,7 +38,7 @@ namespace creation
 
         size_t result = 0;
 
-        if (bReadThroughStreamer || spPageCache)
+        if (m_bunk9 || m_pCache)
         {
             // ASSERT
             __debugbreak();
@@ -67,8 +67,7 @@ namespace creation
 
         switch (whence)
         {
-        case SeekMode::kSet: 
-        {
+        case SeekMode::kSet: {
             truePos = cursor;
             if (openMode == OpenMode::kReadOnly)
             {
@@ -77,19 +76,16 @@ namespace creation
             }
             break;
         }
-        case SeekMode::kCur: 
-        {
+        case SeekMode::kCur: {
             truePos = cursor + m_bsFilePos;
             break;
         }
-        case SeekMode::kEnd:
-        {
+        case SeekMode::kEnd: {
             size = GetSize();
             truePos = size - cursor;
             break;
         }
-        default: 
-        {
+        default: {
             truePos = m_bsFilePos;
             break;
         }
@@ -108,7 +104,7 @@ namespace creation
         if (truePos != m_bsFilePos)
         {
             m_bsFilePos = truePos;
-            if (bReadThroughStreamer && !spPageCache)
+            if (m_bunk9 && !m_pCache)
             {
                 NiFile::Seek(cursor, whence);
                 return;
@@ -127,7 +123,7 @@ namespace creation
             }
             else
             {
-                currentPos = SeekMode::kSet ? cursor : size - cursor; 
+                currentPos = SeekMode::kSet ? cursor : size - cursor;
             }
 
             NiFile::Flush();
@@ -160,7 +156,7 @@ namespace creation
         }
 
         BSSystemFile::AccessMode amode;
-        BSSystemFile::OpenMode omode{BSSystemFile::OpenMode::kNone};
+        BSSystemFile::OpenMode omode{ BSSystemFile::OpenMode::kNone };
 
         switch (openMode)
         {
@@ -230,7 +226,7 @@ namespace creation
     {
         if (file.UnkFlagBits() == 0 || file.UnkFlagBits() == 3)
             return true;
-    
+
         return _access(fileName, 0) != -1;
     }
 
@@ -301,4 +297,4 @@ namespace creation
         m_bsFilePos += result;
         return result;
     }
-}
+} // namespace creation

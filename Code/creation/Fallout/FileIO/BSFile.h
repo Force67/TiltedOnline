@@ -1,7 +1,7 @@
 #pragma once
 
-#include "NetImmerse/NiFile.h"
 #include "BSCore/BSString.h"
+#include "NetImmerse/NiFile.h"
 
 namespace creation
 {
@@ -32,8 +32,7 @@ namespace creation
         }
 
         // inlined by the game
-        template<typename T>
-        size_t Read(T& item)
+        template <typename T> size_t Read(T& item)
         {
             size_t c = Read(reinterpret_cast<void*>(&item), sizeof(T));
             absolutePos += c;
@@ -46,7 +45,7 @@ namespace creation
         int m_iunk1 = -1;
         uint32_t m_iunk2 = 0;
         uint32_t m_iunk3 = 0;
-        char fileName[260]{0};
+        char fileName[260]{ 0 };
         size_t m_lastResult = 0;
         size_t m_ioSize = 0;
         size_t m_bsFilePos = 0;
@@ -58,6 +57,6 @@ namespace creation
         uint8_t m_bunk8 = 0;
         bool m_bunk9 = false;
     };
-    
+
     static_assert(sizeof(BSFile) == 0x1B0);
-}
+} // namespace creation
