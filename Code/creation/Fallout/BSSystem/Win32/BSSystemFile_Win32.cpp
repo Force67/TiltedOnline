@@ -16,10 +16,10 @@ namespace creation
                 return BSSystemFile::Error::kInvalidPath;
             case ERROR_PATH_NOT_FOUND:
                 return BSSystemFile::Error::kInvalid;
-            case ERROR_MAX_THRDS_REACHED:
-                return BSSystemFile::Error::kFileError;
-            case ERROR_SEEK:
+            case ERROR_WRITE_PROTECT:
                 return BSSystemFile::Error::kMemoryError;
+            case ERROR_ALREADY_EXISTS:
+                return BSSystemFile::Error::kFileError;
             default:
                 return BSSystemFile::Error::kBusy;
             }
