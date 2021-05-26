@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Shared/Sky/SkyObject.h"
+#include "BSMain/Setting.h"
 
 namespace creation
 {
@@ -15,6 +16,9 @@ namespace creation
     private:
         NiPointer<NiNode> m_pStarNode;
         float m_fAlpha = 0.f;
+
+        static GameSetting fStarsRotateXAxis;
+        static GameSetting fStarsRotateYAxis;
     };
 
     static_assert(sizeof(Stars) == 0x20);

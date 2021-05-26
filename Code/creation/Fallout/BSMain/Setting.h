@@ -6,8 +6,8 @@ namespace creation
 {
     struct Setting
     {
-        // It seems to have a vtable
         virtual ~Setting() = default;
+        virtual bool IsPrefSetting() { return false; }
 
         union
         {
