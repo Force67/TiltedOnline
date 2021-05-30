@@ -4,17 +4,23 @@
 
 namespace creation
 {
+    class BSTArrayHeapAllocator
+    {
+        void* m_pBuffer;
+        uint32_t m_uiSize;
+    };
+
     template <class T>
-    struct BSArray
+    struct BSTArray
     {
         T* data;
         alignas(sizeof(void*)) uint32_t capacity; // Might be size_t
         alignas(sizeof(void*)) uint32_t length;   // Might be size_t
 
-        BSArray() : data{ nullptr }, capacity{}, length{ 0 }
+        BSTArray() : data{ nullptr }, capacity{}, length{ 0 }
         {
         }
-        ~BSArray() = default;
+        ~BSTArray() = default;
 
         T& operator[](uint32_t aIndex)
         {
