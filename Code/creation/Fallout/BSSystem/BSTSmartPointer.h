@@ -19,7 +19,7 @@ namespace creation
                 delete this;
         }
 
-    private:
+    protected:
         // should be BSTAtomic something
         std::atomic<uint32_t> uiRefCount;
     };

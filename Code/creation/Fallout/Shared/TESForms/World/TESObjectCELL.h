@@ -15,7 +15,6 @@ namespace creation
     public:
         virtual ~TESObjectCELL() = default;
 
-    protected:
         BSSpinLock m_lock;
         BSSpinLock m_lock2;
         uint16_t m_uiCellFlags;

@@ -4,6 +4,7 @@
 
 class BSAnimationGraphManager;
 class BSFixedString;
+template<class T> class BSTSmartPointer;
 
 namespace creation
 {
@@ -17,7 +18,7 @@ namespace creation
         virtual void sub_2a();
         virtual void sub_2c();
 
-        virtual bool GetBSAnimationGraph(BSAnimationGraphManager** aPtr) const;
+        virtual bool GetBSAnimationGraph(BSTSmartPointer<BSAnimationGraphManager>* aPtr) const;
         virtual uint32_t sub_3();
         virtual uint32_t sub_4();
         virtual uint32_t sub_5();
