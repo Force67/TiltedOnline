@@ -1,15 +1,19 @@
 #pragma once
 
 #include <Games/Primitives.h>
+#include <NetImmerse/NiNode.h>
+
+class Sky;
 
 class SkyObject
 {
 public:
     virtual ~SkyObject() = default;
 
-    virtual void* GetSomething() = 0;
-    virtual void* CreateSomething(int param) = 0;
-    virtual void m3(void* someObject, int param) = 0;
+    virtual NiNode* GetRootNode() = 0;
+    virtual void Initialize(int param) = 0;
+    virtual void Update(Sky* sky, float tick) = 0;
 
-    __int64 object;
+private:
+    NiNode* skyNode;
 };

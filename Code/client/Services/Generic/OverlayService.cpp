@@ -64,10 +64,14 @@ void OverlayService::Create(RenderSystemD3D11* apRenderSystem) noexcept
 
 void OverlayService::Render() const noexcept
 {
+    #if 1
     m_pOverlay->GetClient()->Render();
+    #endif
 }
 
 void OverlayService::Reset() const noexcept
 {
+    #if 1
     m_pOverlay->GetClient()->Reset();
+    #endif
 }

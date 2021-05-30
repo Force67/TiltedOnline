@@ -167,7 +167,13 @@ struct NiPoint3 : glm::vec3
     NiPoint3() : glm::vec3()
     {
     }
+
     NiPoint3(const glm::vec3& acRhs) : glm::vec3(acRhs)
+    {
+    }
+
+    explicit NiPoint3(float x, float y, float z)
+        : glm::vec3(x, y, z)
     {
     }
 
@@ -193,6 +199,38 @@ struct NiPoint2 : glm::vec2
 static_assert(sizeof(NiPoint2) == 8);
 static_assert(offsetof(NiPoint2, x) == 0);
 static_assert(offsetof(NiPoint2, y) == 4);
+
+struct NiMatrix3 : public glm::mat3x3
+{
+    static const NiMatrix3 ZERO;
+    static const NiMatrix3 IDENTITY;
+};
+
+static_assert(sizeof(NiMatrix3) == 0x24);
+
+struct NiTransform
+{
+    NiMatrix3 rot;
+    NiPoint3 pos;
+    float scale;
+
+    /*
+    NiTransform operator*(const NiTransform& rhs) const
+    {
+        NiTransform tmp;
+        tmp.scale = scale * rhs.scale;
+        tmp.rot = rot * rhs.rot;
+        tmp.pos = pos + (rot * rhs.pos) * scale;
+        return tmp;
+    }*/
+
+    NiPoint3 operator*(const NiPoint3& pt) const
+    {
+        return (((rot * pt) * scale) + pos);
+    }
+};
+
+static_assert(sizeof(NiTransform) == 0x34);
 
 struct BSRecursiveLock
 {

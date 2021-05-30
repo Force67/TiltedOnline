@@ -15,3 +15,11 @@ void Sky::Reset()
 
     ResetSky(this);
 }
+
+void Sky::SetSkyMode(SkyMode skyMode)
+{
+    using TSetState = void(Sky*, SkyMode);
+    POINTER_SKYRIMSE(TSetState, SetSkyState, 0x1403B0F30 - 0x140000000);
+
+    SetSkyState(this, skyMode);
+}
