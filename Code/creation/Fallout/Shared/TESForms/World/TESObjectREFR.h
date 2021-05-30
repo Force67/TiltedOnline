@@ -4,17 +4,21 @@
 #include "Shared/ExtraData/ExtraDataList.h"
 #include "BSSystem/BSTSmartPointer.h"
 #include "BSMain/BSHandleRefObject.h"
-#include "TESObjectCELL.h"
 #include "BSMain/BSHandleRefObject.h"
 #include "Shared/Animation/IAnimationGraphManagerHolder.h"
 #include "Shared/FormComponents/IKeywordFormBase.h"
 #include "Shared/AI/ActorValueOwner.h"
 #include "NetImmerse/NiPoint3.h"
+#include "Shared/Events/BSTEventSink.h"
+
+class TESObjectCELL;
 
 namespace creation
 {
-    class TESObjectREFR : public TESForm, public BSHandleRefObject, public IAnimationGraphManagerHolder,
-        public IKeywordFormBase, public ActorValueOwner
+    class TESObjectREFR : public TESForm, public BSHandleRefObject, public BSTEventSink<BSActiveGraphIfInactiveEvent>,
+                          public BSTEventSink<BSAnimationGraphEvent>, public BSTEventSink<BGSInventoryListEvent::Event>,
+                          public IAnimationGraphManagerHolder, public IKeywordFormBase, public ActorValueOwner,
+                          public BSTEventSource<ActorValueChangedEvent>
     {
     public:
         TESObjectCELL* m_pParentCell;
@@ -22,17 +26,19 @@ namespace creation
         uint32_t padCC;
         NiPoint3 m_position;
         uint32_t padDC;
-        TESForm* m_baseForm;
+        TESForm* m_pBaseForm;
         uint8_t padE8;
         void* m_pLoadedSTate;
         void* m_pInventory;
         BSTSmartPointer<ExtraDataList> m_pExtraData;
-        uint16_t m_usReferenceScale;
-        uint8_t m_eModelState;
-        bool m_bDestroying;
+        uint8_t pad108[0x4];
     };
-    constexpr size_t t = offsetof(TESObjectREFR, m_pParentCell);
-    constexpr size_t t = sizeof(TESObjectREFR);
 
+    static_assert(offsetof(TESObjectREFR, m_pBaseForm) == 0xE0);
+    static_assert(offsetof(TESObjectREFR, m_position) == 0xD0);
+    static_assert(offsetof(TESObjectREFR, m_rotation) == 0xC0);
+    static_assert(offsetof(TESObjectREFR, m_pParentCell) == 0xB8);
+    static_assert(offsetof(TESObjectREFR, m_pInventory) == 0xF8);
+    static_assert(offsetof(TESObjectREFR, m_pExtraData) == 0x100);
     static_assert(sizeof(TESObjectREFR) == 0x110);
 }
