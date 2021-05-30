@@ -66,7 +66,7 @@ namespace creation
         Error ReadImpl(void* buffer, size_t length, size_t* numRead);
         Error WriteImpl(const void* buffer, size_t length, size_t* numWritten);
 
-        Error GetSizeImpl(size_t *size);
+        Error GetSizeImpl(size_t* size);
         Error SeekImpl(size_t offset, int whence, size_t* pos);
 
     private:

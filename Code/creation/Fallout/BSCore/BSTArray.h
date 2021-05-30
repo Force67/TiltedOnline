@@ -4,7 +4,8 @@
 
 namespace creation
 {
-    template <class T> struct BSArray
+    template <class T> 
+    struct BSArray
     {
         T* data;
         alignas(sizeof(void*)) uint32_t capacity; // Might be size_t
@@ -63,5 +64,4 @@ namespace creation
             return length == 0;
         }
     };
-
 } // namespace creation
