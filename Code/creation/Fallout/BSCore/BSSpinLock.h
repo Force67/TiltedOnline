@@ -1,10 +1,10 @@
 #pragma once
 
-#include <atomic>
+#include <stdafx.h>
 
 namespace creation
 {
-    class BSReadWriteLock
+    class BSSpinLock
     {
         uint32_t m_uiOperatingThread;
         std::atomic<uint32_t> m_uiLockCount;

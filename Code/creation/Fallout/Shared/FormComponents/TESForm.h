@@ -1,7 +1,8 @@
 #pragma once
 
-#include <cstdint>
-#include "Shared/TESForms/FormComponents/BaseFormComponent.h"
+#include <stdafx.h>
+
+#include "BaseFormComponent.h"
 
 namespace creation
 {
