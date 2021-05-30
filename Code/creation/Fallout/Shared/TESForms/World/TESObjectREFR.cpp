@@ -1,5 +1,4 @@
-#include <stdafx.h>
-
+#if 0
 #include "TESObjectREFR.h"
 #include "Shared/AI/Actor.h"
 
@@ -188,3 +187,4 @@ namespace creation
             TP_HOOK(&RealLockChange, HookLockChange);
         });
 }
+#endif

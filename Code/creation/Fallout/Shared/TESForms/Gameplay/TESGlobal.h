@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BSCore/BSString.h"
-#include "Shared/TESForms/FormComponents/TESForm.h"
+#include "Shared/FormComponents/TESForm.h"
 
 namespace creation
 {

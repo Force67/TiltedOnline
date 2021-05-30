@@ -44,5 +44,5 @@ public:
 
 };
 
-static_assert(sizeof(Sky) == 0x480);
+//static_assert(sizeof(Sky) == 0x480);
 //static_assert(offsetof(Sky, Sky::eMode) == (0x36C - 8));

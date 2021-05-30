@@ -165,6 +165,7 @@ void TestService::OnUpdate(const UpdateEvent& acUpdateEvent) noexcept
         ShowCursor(TRUE);
 }
 
+#if TP_FALLOUT4
 static float (*guimatrix)[4][4] = nullptr;
 static NiRect<float> *guiport = nullptr;
 
@@ -175,6 +176,7 @@ static TiltedPhoques::Initializer s_Init([]() {
     guimatrix = s_matrix.Get();
     guiport = s_port.Get();
 });
+#endif
 
 #if 0
 using TSeek = __int64 (BSFile*, __int64, int);
@@ -208,10 +210,12 @@ static TiltedPhoques::Initializer s_LMAO([]() {
 #include <DirectXMath.h>
 
 
+#if TP_FALLOUT4
 bool HUD_WorldPtToScreenPt3(NiPoint3* in, NiPoint3* out)
 {
     return NiCamera::WorldPtToScreenPt3((float*)guimatrix, guiport, in, &out->x, &out->y, &out->z, 1e-5f);
 }
+#endif
 
 
 void TestService::OnDraw() noexcept
@@ -482,53 +486,6 @@ void TestService::OnDraw() noexcept
     ImGui::End();
 #endif
 
-    if (auto* pPlayer = PlayerCharacter::Get())
-    {
-        if (auto* pCam = PlayerCamera::Get())
-        {
-            /*
-                // Compute the projection of the input world point to a viewport point
-    // (fBx,fBy), with port.L <= fBx <= port.R and port.B <= fBy <= port.T.
-    bool WorldPtToScreenPt(const NiPoint3& kPt, float& fBx, float& fBy,
-        float fZeroTolerance = 1e-5f) const;
-
-            */
-
-            // https://github.com/expired6978/SKSE64Plugins/blob/master/hudextension/HUDExtension.cpp#L285
-            // https://github.com/SlavicPotato/CBPSSE/blob/5cc5a56e075dc77d96163ca1c3dc18df6d9973f3/CBP/CBP/Renderer.cpp
-
-            // ´NO... YOU HAVE TO USE THE GLOBAL STUFF
-            // WITH THE INTERNAL FUNCTION U MORON
-            // _WorldPtToScreenPt3_Internal(GLOBALMATRIX, GLOBALRECT, ...)
-
-            NiPoint3 screenPos;
-            pCam->WorldPtToScreenPt3(pPlayer->position, screenPos);
-            {
-                auto* pDrawList = ImGui::GetBackgroundDrawList();
-
-                auto position = pPlayer->position;
-
-                // test scale up to head.
-                position.y -= 200.f;
-
-                NiPoint3 out{};
-                HUD_WorldPtToScreenPt3(&pPlayer->position, &out);
-
-                RECT rect{};
-                GetWindowRect(GetForegroundWindow(), &rect);
-
-                // transpose to screen
-                ImVec2 screenPos = ImVec2{
-                    ((rect.right - rect.left) * out.x) + rect.left,
-                    ((rect.bottom - rect.top) * (1.0f - out.y)) + rect.top,
-                };
-
-                // IT WORKS!
-                ImGui::GetBackgroundDrawList()->AddText(screenPos, ImColor::ImColor(255.f, 0.f, 0.f),
-                                                        "Forseeee to the moon");
-            }
-        }
-    }
 }
 
 
