@@ -11,30 +11,30 @@
 
 namespace creation
 {
-struct BSSystemFile__Info
-{
-    uint64_t x;
-    uint64_t ModifyTime;
-    uint64_t CreateTime;
-    /* 0x0018 */ uint64_t uiFileSize;
-}; /* size: 0x0020 */
+    struct BSSystemFile__Info
+    {
+        uint64_t x;
+        uint64_t ModifyTime;
+        uint64_t CreateTime;
+        /* 0x0018 */ uint64_t uiFileSize;
+    }; /* size: 0x0020 */
 
-class TESFile
-{
-  public:
-    TESFile();
+    class TESFile
+    {
+    public:
+        TESFile();
 
-    __int64 LoadTESInfo(TESFile* self, TESFile* apParentFile);
+        __int64 LoadTESInfo(TESFile* self, TESFile* apParentFile);
 
-  private:
-    void ClearMasterList();
+    private:
+        void ClearMasterList();
 
-    bool ReadFormHeader();
-    bool ReadChunkHeader();
+        bool ReadFormHeader();
+        bool ReadChunkHeader();
 
-    char pad0[0x3c0];
-};
+        char pad0[0x3c0];
+    };
 
-static_assert(sizeof(TESFile) == 0x3C0);
+    static_assert(sizeof(TESFile) == 0x3C0);
 
 } // namespace creation

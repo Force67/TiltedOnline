@@ -19,7 +19,7 @@ namespace creation
         uint32_t m_uiRefCount;
         uint32_t m_pad1;
         static std::atomic<uint32_t> ms_uiObjects;
-};
+    };
 
-static_assert(sizeof(NiRefObject) == 0x10);
+    static_assert(sizeof(NiRefObject) == 0x10);
 } // namespace creation

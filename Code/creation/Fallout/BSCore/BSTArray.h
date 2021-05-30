@@ -4,14 +4,14 @@
 
 namespace creation
 {
-    template <class T> 
+    template <class T>
     struct BSArray
     {
         T* data;
         alignas(sizeof(void*)) uint32_t capacity; // Might be size_t
         alignas(sizeof(void*)) uint32_t length;   // Might be size_t
 
-        BSArray() : data{nullptr}, capacity{}, length{0}
+        BSArray() : data{ nullptr }, capacity{}, length{ 0 }
         {
         }
         ~BSArray() = default;
@@ -45,7 +45,7 @@ namespace creation
                 return *m_pEntry;
             }
 
-          private:
+        private:
             T* m_pEntry;
         };
 

@@ -3,7 +3,7 @@
 
 namespace creation
 {
-NiStream::NiStream()
-{
-}
+    NiStream::NiStream()
+    {
+    }
 } // namespace creation

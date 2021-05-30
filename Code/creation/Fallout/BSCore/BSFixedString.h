@@ -18,6 +18,6 @@ namespace creation
     private:
         BSStringPool::Entry* m_pEntry = nullptr;
     };
-    
+
     static_assert(sizeof(BSFixedString) == 8);
 } // namespace creation

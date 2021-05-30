@@ -4,20 +4,20 @@
 
 namespace creation
 {
-// Pool has no size, it acts as a static
-// interface
-struct BSStringPool
-{
-    struct Entry
+    // Pool has no size, it acts as a static
+    // interface
+    struct BSStringPool
     {
-        void Acquire();
-        void Release();
+        struct Entry
+        {
+            void Acquire();
+            void Release();
 
-        Entry* pLeft;
-        uint32_t flags;
-        uintptr_t lengthptr;
+            Entry* pLeft;
+            uint32_t flags;
+            uintptr_t lengthptr;
+        };
     };
-};
 
-static_assert(sizeof(BSStringPool::Entry) == 0x18);
+    static_assert(sizeof(BSStringPool::Entry) == 0x18);
 } // namespace creation
