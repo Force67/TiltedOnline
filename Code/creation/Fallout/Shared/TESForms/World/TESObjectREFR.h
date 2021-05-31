@@ -13,12 +13,13 @@
 #include "Shared/TESForms/World/TESObjectCELL.h"
 
 class NiNode;
-class Lock;
 class BSExtraDataList;
 class AnimationVariables;
 
 namespace creation
 {
+    class Lock;
+
     class TESObjectREFR : public TESForm, public BSHandleRefObject, public BSTEventSink<BSActiveGraphIfInactiveEvent>,
                           public BSTEventSink<BSAnimationGraphEvent>, public BSTEventSink<BGSInventoryListEvent::Event>,
                           public IAnimationGraphManagerHolder, public IKeywordFormBase, public ActorValueOwner,
@@ -192,6 +193,8 @@ namespace creation
         BSTSmartPointer<ExtraDataList> m_pExtraData;
         uint8_t pad108[0x4];
     };
+
+    POINTER_FALLOUT4(uint32_t, s_nullHandle, 0x1438CCE04 - 0x140000000);
 
     static_assert(offsetof(TESObjectREFR, m_pBaseForm) == 0xE0);
     static_assert(offsetof(TESObjectREFR, m_position) == 0xD0);

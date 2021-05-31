@@ -2,11 +2,12 @@
 
 #include "BaseFormComponent.h"
 
-class BGSSaveFormBuffer;
-class BGSLoadFormBuffer;
 
 namespace creation
 {
+    class BGSSaveFormBuffer;
+    class BGSLoadFormBuffer;
+
     // TODO: move to inl
     enum FormType : uint8_t
     {

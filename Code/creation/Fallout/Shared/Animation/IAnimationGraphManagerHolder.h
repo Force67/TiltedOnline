@@ -2,7 +2,7 @@
 
 #include <stdafx.h>
 
-class BSAnimationGraphManager;
+class creation::BSAnimationGraphManager;
 class BSFixedString;
 template<class T> class BSTSmartPointer;
 

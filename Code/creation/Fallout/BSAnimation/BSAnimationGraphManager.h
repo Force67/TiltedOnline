@@ -1,17 +1,16 @@
 #pragma once
 
-#include <stdafx.h>
-
 #include "Shared/Events/BSTEventSink.h"
 #include "BSSystem/BSTSmartPointer.h"
 #include "BSCore/BSTSmallArray.h"
 #include "BSCore/BSSpinLock.h"
-#include "BShkbAnimationGraph.h"
+#include "BSHavok/BShkbAnimationGraph.h"
 
 namespace creation
 {
     class BSAnimationGraphManager : public BSTEventSink<BSAnimationGraphEvent>, public BSIntrusiveRefCounted
     {
+    public:
         virtual ~BSAnimationGraphManager();
         virtual void sub_1(void* apUnk1);
 

@@ -7,6 +7,7 @@ namespace creation
     template <class T>
     class BSTSmallArray
     {
+    public:
         int32_t capacity; // 0
         T** data;         // 8
         uint32_t size;    // 10
