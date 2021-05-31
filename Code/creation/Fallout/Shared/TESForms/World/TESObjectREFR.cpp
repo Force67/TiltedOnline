@@ -1,4 +1,5 @@
 #include "TESObjectREFR.h"
+/*
 #include "Shared/AI/Actor.h"
 #include "BSCore/BSScopedLock.h"
 #include "BSCore/BSSpinLock.h"
@@ -398,3 +399,4 @@ namespace creation
             TP_HOOK(&RealLockChange, HookLockChange);
         });
 }
+*/

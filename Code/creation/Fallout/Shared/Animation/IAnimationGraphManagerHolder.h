@@ -2,12 +2,13 @@
 
 #include <stdafx.h>
 
-class creation::BSAnimationGraphManager;
 class BSFixedString;
 template<class T> class BSTSmartPointer;
 
 namespace creation
 {
+    class BSAnimationGraphManager;
+
     class IAnimationGraphManagerHolder
     {
     public:

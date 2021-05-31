@@ -1,7 +1,5 @@
 #pragma once
 
-#include "stdafx.h"
-
 class ActorValueInfo;
 
 namespace creation
@@ -29,4 +27,6 @@ namespace creation
         virtual void SetValue(ActorValueInfo* apInfo, float aValue) noexcept;
         virtual bool IsPlayerOwner() const noexcept;
     };
+
+    static_assert(sizeof(ActorValueOwner) == 0x8);
 }

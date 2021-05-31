@@ -12,6 +12,7 @@ namespace creation
     enum FormType : uint8_t
     {
         kGlobal = 11,
+        kNPC = 45,
         kYear = 53,
         kMonth = 54,
         kDay = 55,

@@ -9,5 +9,6 @@ namespace creation
 {
     class NavMesh : public TESForm, public BSNavmesh
     {
+        virtual ~NavMesh() override;
     };
 }
