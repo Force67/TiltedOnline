@@ -191,7 +191,7 @@ namespace creation
         void* m_pLoadedSTate;
         void* m_pInventory;
         BSTSmartPointer<ExtraDataList> m_pExtraData;
-        uint8_t pad108[0x4];
+        uint8_t pad108[0x8];
     };
 
     POINTER_FALLOUT4(uint32_t, s_nullHandle, 0x1438CCE04 - 0x140000000);

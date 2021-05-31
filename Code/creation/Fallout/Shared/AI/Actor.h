@@ -1,16 +1,30 @@
 #pragma once
 
 #include "Shared/TESForms/World/TESObjectREFR.h"
+#include "Shared/Magic/MagicTarget.h"
+#include "ActorState.h"
+#include "Shared/Animation/IPostAnimationChannelUpdateFunctor.h"
 
-class TESNPC;
-class ActorExtension;
-class ExActor;
-class ExPlayerCharacter;
-class ProcessManager;
+#include <Structs/Inventory.h>
+#include <Structs/Factions.h>
+#include <Structs/ActorValues.h>
 
 namespace creation
 {
-    class Actor : public TESObjectREFR
+    class TESNPC;
+    class ActorExtension;
+    class ExActor;
+    class ExPlayerCharacter;
+    class AIProcess;
+    class TESFaction;
+
+    class Actor : public TESObjectREFR, public MagicTarget, public ActorState,
+                  public BSTEventSink<BSMovementDataChangedEvent>, public BSTEventSink<BSTransformDeltaEvent>,
+                  public BSTEventSink<BSSubGraphActivationUpdate>, public BSTEventSink<bhkCharacterMoveFinishEvent>,
+                  public BSTEventSink<bhkNonSupportContactEvent>, public BSTEventSink<bhkCharacterStateChangeEvent>,
+                  public IPostAnimationChannelUpdateFunctor, public BSTEventSource<MovementMessageUpdateRequestImmediate>,
+                  public BSTEventSource<PerkValueEvents::PerkValueChangedEvent>, public BSTEventSource<PerkValueEvents::PerkEntryUpdatedEvent>,
+                  public BSTEventSource<ActorCPMEvent>
     {
     public:
         static constexpr uint32_t Type = FormType::kCharacter;
@@ -59,23 +73,13 @@ namespace creation
         void Reset() noexcept;
         void Respawn() noexcept;
 
-        MagicTarget magicTarget;
-        uint8_t unk118[0x128 - 0x118];
-        ActorState actorState;
-        BSTEventSink<BSMovementDataChangedEvent> movementDataChangedSink;
-        BSTEventSink<BSTransformDeltaEvent> transformDeltaSink;
-        BSTEventSink<BSSubGraphActivationUpdate> subGraphActivationUpdateSink;
-        BSTEventSink<bhkCharacterMoveFinishEvent> characterMoveFinishSink;
-        BSTEventSink<bhkNonSupportContactEvent> nonSupportContactSink;
-        BSTEventSink<bhkCharacterStateChangeEvent> characterStateChangeSink;
-        void* postAnimationChannelUpdateFunctor;
-        uint8_t unk170[0x2D0 - 0x170];
-        uint32_t actorFlags;
+        uint32_t m_uiActorFlags;
         uint8_t unk2D8[0x300 - 0x2D8];
-        ProcessManager* processManager;
-
+        AIProcess* m_pAIProcess;
         uint8_t pad308[0x3E8 - 0x308];
-        TESForm* magicItems[4];
+        TESForm* m_pMagicItems[4];
         uint8_t padActorEnd[0x490 - 0x408];
     };
+
+    static_assert(sizeof(Actor) == 0x490);
 }

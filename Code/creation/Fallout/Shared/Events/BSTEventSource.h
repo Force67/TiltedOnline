@@ -21,6 +21,7 @@ namespace creation
     template<class T>
     class BSTEventSource
     {
+      public:
         void RegisterSink(BSTEventSink<T>* apSink) noexcept
         {
             details::InternalRegisterSink(reinterpret_cast<void*>(this), reinterpret_cast<void*>(apSink));
@@ -73,5 +74,61 @@ namespace creation
     {
         ActorValueInfo* m_pActorValueType;
         TESObjectREFR* m_pActorValueOwner;
+    };
+
+    class BSMovementDataChangedEvent
+    {
+    };
+
+    class BSTransformDeltaEvent
+    {
+    };
+
+    class BSSubGraphActivationUpdate
+    {
+    };
+
+    class bhkCharacterMoveFinishEvent
+    {
+    };
+
+    class bhkNonSupportContactEvent
+    {
+    };
+
+    class bhkCharacterStateChangeEvent
+    {
+    };
+
+    class MovementMessageUpdateRequestImmediate
+    {
+    };
+
+    class PerkValueEvents
+    {
+    public:
+        enum Type : int16_t
+        {
+            kAdd,
+            kRemove
+        };
+
+        class PerkValueChangedEvent
+        {
+            Type m_uiType;
+            uint32_t m_uiOwnerBits;
+            void* m_pPerk; // TODO: change void to type (BGSPerk)
+            uint8_t unk10;
+        };
+
+        class PerkEntryUpdatedEvent
+        {
+            uint32_t m_uiOwnerBits;
+            void* m_pPerkEntry; // TODO: change void to type (BGSPerkEntry)
+        };
+    };
+
+    class ActorCPMEvent
+    {
     };
 }
