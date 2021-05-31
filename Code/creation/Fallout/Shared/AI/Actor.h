@@ -32,6 +32,8 @@ namespace creation
         static BSTSmartPointer<Actor> New() noexcept;
         static BSTSmartPointer<Actor> Create(TESNPC* apNpc) noexcept;
 
+        virtual ~Actor() override;
+
         virtual void sub_C4();
         virtual void sub_C5();
         virtual void sub_C6();

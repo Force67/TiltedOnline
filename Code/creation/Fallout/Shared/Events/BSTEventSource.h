@@ -131,4 +131,41 @@ namespace creation
     class ActorCPMEvent
     {
     };
+
+    class MenuOpenCloseEvent
+    {
+    };
+    
+    class MenuModeChangeEvent
+    {
+    };
+
+    class UserEventEnabledEvent
+    {
+    };
+
+    class OtherEventEnabledEvent 
+    {
+    };
+
+    class TESHitEvent
+    {
+    };
+
+    class BGSActorCellEvent
+    {
+    };
+
+    class BGSActorDeathEvent
+    {
+    };
+
+    class PositionPlayerEvent
+    {
+    };
+    
+    class PickRefUpdateEvent
+    {
+    };
+
 }
