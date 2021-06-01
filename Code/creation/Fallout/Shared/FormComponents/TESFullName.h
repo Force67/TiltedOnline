@@ -14,4 +14,5 @@ namespace creation
         BSFixedString m_fullName;
     };
 
+    static_assert(sizeof(TESFullName) == 0x10);
 }

@@ -6,8 +6,6 @@ namespace creation
 {
     class BGSPropertySheet : public BaseFormComponent
     {
-        virtual ~BGSPropertySheet();
-
         void* unk;
     };
 
