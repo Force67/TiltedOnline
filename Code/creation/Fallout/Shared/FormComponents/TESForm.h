@@ -126,5 +126,6 @@ namespace creation
         uint8_t tp_flags; // This is actually padding so we can use it for any purpose
     };
 
+
     static_assert(sizeof(TESForm) == 0x20);
 }
