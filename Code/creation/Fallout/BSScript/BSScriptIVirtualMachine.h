@@ -13,6 +13,7 @@ namespace creation
 
         class IVirtualMachine
         {
+        public:
             virtual ~IVirtualMachine() = 0;
 
             virtual void sub_01();

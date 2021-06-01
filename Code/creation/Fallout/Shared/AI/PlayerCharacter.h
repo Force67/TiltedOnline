@@ -18,6 +18,8 @@ namespace creation
     public:
         static PlayerCharacter* Get() noexcept;
 
+        virtual ~PlayerCharacter() override;
+
         struct Objective
         {
             uint64_t pad0;
@@ -40,4 +42,9 @@ namespace creation
     static_assert(sizeof(PlayerCharacter) == 0xE10);
     static_assert(offsetof(PlayerCharacter, m_objectives) == 0x7D8);
     static_assert(offsetof(PlayerCharacter, m_pLocationForm) == 0xCC8);
+
+
+    class ExPlayerCharacter : PlayerCharacter, ActorExtension
+    {
+    };
 }

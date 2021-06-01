@@ -8,6 +8,7 @@
 #include <Structs/Inventory.h>
 #include <Structs/Factions.h>
 #include <Structs/ActorValues.h>
+#include <Structs/ActionEvent.h>
 
 namespace creation
 {
@@ -84,4 +85,27 @@ namespace creation
     };
 
     static_assert(sizeof(Actor) == 0x490);
+
+
+    class ActorExtension
+    {
+    public:
+        enum
+        {
+            kRemote = 1 << 0
+        };
+
+        bool IsRemote() const noexcept;
+        bool IsLocal() const noexcept;
+        void SetRemote(bool aSet) noexcept;
+
+        ActionEvent LatestAnimation{};
+
+    private:
+        uint32_t onlineFlags{ 0 };
+    };
+
+    class ExActor : Actor, ActorExtension
+    {
+    };
 }
