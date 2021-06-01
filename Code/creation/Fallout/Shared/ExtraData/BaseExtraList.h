@@ -4,7 +4,7 @@
 
 namespace creation
 {
-    class ExtraList
+    class BaseExtraList
     {
         BSExtraData *m_pBegin;
         BSExtraData **m_pEnd;

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <stdafx.h>
-
-#include "ExtraList.h"
+#include "BaseExtraList.h"
 #include "BSSystem/BSReadWriteLock.h"
 
 namespace creation
@@ -10,7 +8,7 @@ namespace creation
     class ExtraDataList
     {
         uint32_t m_uiRefCount;
-        ExtraList m_extraList;
+        BaseExtraList m_extraList;
         BSReadWriteLock m_Lock;
     };
 }

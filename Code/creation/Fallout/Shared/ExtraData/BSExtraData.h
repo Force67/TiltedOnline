@@ -13,5 +13,7 @@ namespace creation
         uint16_t m_uiFlags;
         uint8_t m_uiType;
     };
+
+    static_assert(sizeof(BSExtraData) == 0x18);
 }
 
