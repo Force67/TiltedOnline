@@ -28,8 +28,8 @@ namespace creation
     {
         size_t Allocate(size_t aSize, TType** aArray)
         {
-            *aArray = &m_buffer;
-            return aSize;
+            *aArray = reinterpret_cast<TType*>(&m_buffer);
+            return TMaxLength;
         }
 
         void Deallocate(TType** aArray)
@@ -46,6 +46,17 @@ namespace creation
     {
     public:
         inline BSStringT() : m_length(0), m_maxLength(0), m_pBuffer(nullptr) {}
+
+        inline ~BSStringT() 
+        {
+            if (m_pBuffer)
+            {
+                TPool::Deallocate(&m_pBuffer);
+                m_pBuffer = nullptr;
+            }
+        }
+
+        operator TType const* () const { return m_pBuffer; }
 
         // inlined by the game.
         inline const TType* c_str() const { return m_pBuffer; }
@@ -89,7 +100,6 @@ namespace creation
             return pos;
         }
 
-
         inline bool Set(const char* apString, size_t aMaxLength)
         {
             uint16_t inputStringLength = apString ? std::strlen(apString) : 0;
@@ -98,10 +108,8 @@ namespace creation
 
             if (maxLength > m_maxLength)
             {
-                // buffer = this;
-                m_maxLength = TMaxLength;
-                if (maxLength > TMaxLength)
-                    maxLength = TMaxLength;
+                size_t count = TPool::Allocate(maxLength, &m_pBuffer);
+                m_maxLength = count <= kMaxStringLength ? count : -1;
             }
 
             if (maxLength <= inputStringLength)
