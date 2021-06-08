@@ -28,8 +28,8 @@ namespace creation
     template <class T>
     struct BSTSmartPointerIntrusiveRefCount
     {
-        static void Acquire(T* p) { (BSIntrusiveRefCounted*)p->IncRef(); }
-        static void Release(T* p) { (BSIntrusiveRefCounted*)p->DecRef(); }
+        static void Acquire(T* p) { ((BSIntrusiveRefCounted*)p)->IncRef(); }
+        static void Release(T* p) { ((BSIntrusiveRefCounted*)p)->DecRef(); }
     };
 
     template <class T, template <class> class RefManager = BSTSmartPointerIntrusiveRefCount>
