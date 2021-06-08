@@ -14,7 +14,7 @@ target("Creation")
     add_headerfiles(
         "**.h",
         "**.inl")
-    set_pcxxheader("TiltedOnlinePCH.h")
+    set_pcxxheader("stdafx.h")
     add_files("**.cpp")
 
     add_deps(

@@ -237,6 +237,40 @@ namespace creation
         m_flags |= result;
         return result;
     }
+
+    BSSystemFile::Error BSSystemFile::GetInfoImpl(Info* aInfo)
+    {
+        FILETIME createTime{};
+        FILETIME accessTime{};
+        FILETIME modifyTime{};
+
+        if (GetFileTime(m_pHandle, &createTime, &accessTime, &modifyTime))
+        {
+            // this is improper
+            aInfo->CreateTime = static_cast<time_t>(createTime.dwLowDateTime);
+            aInfo->AccessTime = static_cast<time_t>(accessTime.dwLowDateTime);
+            aInfo->ModifyTime = static_cast<time_t>(modifyTime.dwLowDateTime);
+
+            LARGE_INTEGER fileSize{};
+            if (GetFileSizeEx(m_pHandle, &fileSize))
+            {
+                aInfo->uiFileSize = fileSize.QuadPart;
+                return Error::kSuccess;
+            }
+
+            aInfo->uiFileSize = 0;
+        }
+
+        return Error::kBusy;
+    }
+
+    BSSystemFile::Error BSSystemFile::GetInfo(Info* aInfo)
+    {
+        Error result = GetInfoImpl(aInfo);
+        m_flags &= 0x80000000;
+        m_flags |= result;
+        return result;
+    }
 }
 
 #endif

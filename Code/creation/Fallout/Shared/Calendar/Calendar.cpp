@@ -31,10 +31,10 @@ namespace creation
     }
 
      // proves that the compiler divides by 12
-    constexpr float y = 0.041666668 * 24;
+    // constexpr float y = 0.041666668 * 24;
     // value / 12 * 0.5
 
-    constexpr float z = 0.00027777778f * 60 / 1000;
+    // constexpr float z = 0.00027777778f * 60 / 1000;
     // proves a division by 1/60
 
     Calendar* Calendar::GetInstance()

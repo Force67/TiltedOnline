@@ -39,6 +39,13 @@ namespace creation
             return c;
         }
 
+        template<typename T> size_t ReadN(T* buffer, size_t n)
+        {
+            size_t c = Read(reinterpret_cast<void*>(buffer), n);
+            absolutePos += c;
+            return c;
+        }
+
     private:
         bool m_bunk0 = false;
         char* m_bsFileBuffer = nullptr;

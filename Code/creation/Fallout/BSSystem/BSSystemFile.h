@@ -40,6 +40,14 @@ namespace creation
             kUnsupported
         };
 
+        struct Info
+        {
+            time_t AccessTime;
+            time_t ModifyTime;
+            time_t CreateTime;
+            size_t uiFileSize;
+        };
+
         BSSystemFile();
         ~BSSystemFile();
 
@@ -60,6 +68,7 @@ namespace creation
         Error Read(void* buffer, size_t length, size_t* numRead);
         Error GetSize(size_t* size);
         Error Seek(size_t offset, int whence, size_t* pos);
+        Error GetInfo(Info*);
 
     private:
         Error OpenImpl(const char* path, AccessMode accessMode, OpenMode openMode);
@@ -68,6 +77,7 @@ namespace creation
 
         Error GetSizeImpl(size_t* size);
         Error SeekImpl(size_t offset, int whence, size_t* pos);
+        Error GetInfoImpl(Info*);
 
     private:
         uint32_t m_flags;
