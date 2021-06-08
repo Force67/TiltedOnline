@@ -209,6 +209,7 @@ namespace creation
 
     using BSStringA = BSStringT<char>;
     using BSStringW = BSStringT<wchar_t>;
+
     using BSDefaultStaticString = BSStaticStringT<>;
 
     static_assert(sizeof(BSStringT<char>) == 0x10);

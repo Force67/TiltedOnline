@@ -10,6 +10,8 @@
 #include <Forms/TESNPC.h>
 #include <SaveLoad.h>
 
+#include <Events/ActivateEvent.h>
+
 #include <BSAnimationGraphManager.h>
 #include <Misc/GameVM.h>
 #include <Havok/BShkbAnimationGraph.h>
@@ -22,6 +24,9 @@
 
 #include <Games/TES.h>
 #include <Games/Overrides.h>
+#include <Games/Misc/Lock.h>
+
+#include <Events/LockChangeEvent.h>
 
 #include <TiltedCore/Serialization.hpp>
 
@@ -34,12 +39,16 @@ thread_local uint32_t ScopedReferencesOverride::s_refCount = 0;
 TP_THIS_FUNCTION(TSetPosition, char, Actor, NiPoint3& acPosition);
 TP_THIS_FUNCTION(TRotate, void, TESObjectREFR, float aAngle);
 TP_THIS_FUNCTION(TActorProcess, char, Actor, float aValue);
+TP_THIS_FUNCTION(TActivate, void, TESObjectREFR, TESObjectREFR* apActivator, uint8_t aUnk1, int64_t aUnk2, int aUnk3, char aUnk4);
+TP_THIS_FUNCTION(TLockChange, void, TESObjectREFR);
 
 static TSetPosition* RealSetPosition = nullptr;
 static TRotate* RealRotateX = nullptr;
 static TRotate* RealRotateY = nullptr;
 static TRotate* RealRotateZ = nullptr;
 static TActorProcess* RealActorProcess = nullptr;
+static TActivate* RealActivate = nullptr;
+static TLockChange* RealLockChange = nullptr;
 
 TESObjectREFR* TESObjectREFR::GetByHandle(uint32_t aHandle) noexcept
 {
@@ -149,8 +158,8 @@ void TESObjectREFR::LoadAnimationVariables(const AnimationVariables& aVariables)
 
             if (!pDescriptor)
             {
-                if ((formID & 0xFF000000) == 0xFF000000)
-                    spdlog::info("Form id {} has {}", formID, pGraph->behaviorGraph->stateMachine->name);
+                //if ((formID & 0xFF000000) == 0xFF000000)
+                    //spdlog::info("Form id {} has {}", formID, pGraph->behaviorGraph->stateMachine->name);
                 return;
             }
 
@@ -242,6 +251,7 @@ BSExtraDataList* TESObjectREFR::GetExtraDataList() noexcept
 #endif
 }
 
+// Delete() should only be used on temporaries
 void TESObjectREFR::Delete() const noexcept
 {
     using ObjectReference = TESObjectREFR;
@@ -280,6 +290,11 @@ void TESObjectREFR::MoveTo(TESObjectCELL* apCell, const NiPoint3& acPosition) co
     POINTER_FALLOUT4(TInternalMoveTo, s_internalMoveTo, 0x1413FE7E0 - 0x140000000);
 
     ThisCall(s_internalMoveTo, this, s_nullHandle.Get(), apCell, apCell->worldspace, acPosition, rotation);
+}
+
+void TESObjectREFR::Activate(TESObjectREFR* apActivator, uint8_t aUnk1, int64_t aUnk2, int aUnk3, char aUnk4) noexcept
+{
+    return ThisCall(RealActivate, this, apActivator, aUnk1, aUnk2, aUnk3, aUnk4);
 }
 
 float Actor::GetSpeed() noexcept
@@ -433,6 +448,29 @@ const GameArray<TintMask*>& PlayerCharacter::GetTints() const noexcept
 }
 #endif
 
+Lock* TESObjectREFR::GetLock() noexcept
+{
+    TP_THIS_FUNCTION(TGetLock, Lock*, TESObjectREFR);
+    POINTER_SKYRIMSE(TGetLock, realGetLock, 0x1402A74C0 - 0x140000000);
+    POINTER_FALLOUT4(TGetLock, realGetLock, 0x14047FEE0 - 0x140000000);
+
+    return ThisCall(realGetLock, this);
+}
+
+Lock* TESObjectREFR::CreateLock() noexcept
+{
+    TP_THIS_FUNCTION(TCreateLock, Lock*, TESObjectREFR);
+    POINTER_SKYRIMSE(TCreateLock, realCreateLock, 0x1402A7270 - 0x140000000);
+    POINTER_FALLOUT4(TCreateLock, realCreateLock, 0x14047FD20 - 0x140000000);
+
+    return ThisCall(realCreateLock, this);
+}
+
+void TESObjectREFR::LockChange() noexcept
+{
+    ThisCall(RealLockChange, this);
+}
+
 char TP_MAKE_THISCALL(HookSetPosition, Actor, NiPoint3& aPosition)
 {
     const auto pExtension = apThis ? apThis->GetExtension() : nullptr;
@@ -502,6 +540,25 @@ char TP_MAKE_THISCALL(HookActorProcess, Actor, float a2)
     return ThisCall(RealActorProcess, apThis, a2);
 }
 
+void TP_MAKE_THISCALL(HookActivate, TESObjectREFR, TESObjectREFR* apActivator, uint8_t aUnk1, int64_t aUnk2, int aUnk3, char aUnk4)
+{
+    auto* pActivator = RTTI_CAST(apActivator, TESObjectREFR, Actor);
+    if (pActivator)
+        World::Get().GetRunner().Trigger(ActivateEvent(apThis, pActivator, aUnk1, aUnk2, aUnk3, aUnk4));
+
+    return ThisCall(RealActivate, apThis, apActivator, aUnk1, aUnk2, aUnk3, aUnk4);
+}
+
+void TP_MAKE_THISCALL(HookLockChange, TESObjectREFR)
+{
+    const auto* pLock = apThis->GetLock();
+    uint8_t lockLevel = pLock->lockLevel;
+
+    World::Get().GetRunner().Trigger(LockChangeEvent(apThis, pLock->flags, lockLevel));
+
+    ThisCall(RealLockChange, apThis);
+}
+
 TiltedPhoques::Initializer s_referencesHooks([]()
     {
         POINTER_SKYRIMSE(TSetPosition, s_setPosition, 0x140296910 - 0x140000000);
@@ -519,16 +576,26 @@ TiltedPhoques::Initializer s_referencesHooks([]()
         POINTER_SKYRIMSE(TActorProcess, s_actorProcess, 0x1405D87F0 - 0x140000000);
         POINTER_FALLOUT4(TActorProcess, s_actorProcess, 0x140D7CEB0 - 0x140000000);
 
+        POINTER_SKYRIMSE(TActivate, s_activate, 0x140296C00 - 0x140000000);
+        POINTER_FALLOUT4(TActivate, s_activate, 0x14040C750 - 0x140000000);
+
+        POINTER_SKYRIMSE(TLockChange, s_lockChange, 0x140285BE0 - 0x140000000);
+        POINTER_FALLOUT4(TLockChange, s_lockChange, 0x1403EDBA0 - 0x140000000);
+
         RealSetPosition = s_setPosition.Get();
         RealRotateX = s_rotateX.Get();
         RealRotateY = s_rotateY.Get();
         RealRotateZ = s_rotateZ.Get();
         RealActorProcess = s_actorProcess.Get();
+        RealActivate = s_activate.Get();
+        RealLockChange = s_lockChange.Get();
 
         TP_HOOK(&RealSetPosition, HookSetPosition);
         TP_HOOK(&RealRotateX, HookRotateX);
         TP_HOOK(&RealRotateY, HookRotateY);
         TP_HOOK(&RealRotateZ, HookRotateZ);
         TP_HOOK(&RealActorProcess, HookActorProcess);
+        TP_HOOK(&RealActivate, HookActivate);
+        TP_HOOK(&RealLockChange, HookLockChange);
     });
 

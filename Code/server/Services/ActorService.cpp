@@ -4,12 +4,14 @@
 #include <Messages/RequestActorValueChanges.h>
 #include <Messages/RequestActorMaxValueChanges.h>
 #include <Messages/RequestHealthChangeBroadcast.h>
+#include <Messages/RequestDeathStateChange.h>
 #include <Services/ActorService.h>
 #include <World.h>
 #include <GameServer.h>
 #include <Messages/NotifyActorValueChanges.h>
 #include <Messages/NotifyActorMaxValueChanges.h>
 #include <Messages/NotifyHealthChangeBroadcast.h>
+#include <Messages/NotifyDeathStateChange.h>
 
 ActorService::ActorService(World& aWorld, entt::dispatcher& aDispatcher) noexcept
     : m_world(aWorld)
@@ -17,6 +19,7 @@ ActorService::ActorService(World& aWorld, entt::dispatcher& aDispatcher) noexcep
     m_updateHealthConnection = aDispatcher.sink<PacketEvent<RequestActorValueChanges>>().connect<&ActorService::OnActorValueChanges>(this);
     m_updateMaxValueConnection = aDispatcher.sink<PacketEvent<RequestActorMaxValueChanges>>().connect<&ActorService::OnActorMaxValueChanges>(this);
     m_updateDeltaHealthConnection = aDispatcher.sink<PacketEvent<RequestHealthChangeBroadcast>>().connect<&ActorService::OnHealthChangeBroadcast>(this);
+    aDispatcher.sink<PacketEvent<RequestDeathStateChange>>().connect<&ActorService::OnDeathStateChange>(this);
 }
 
 ActorService::~ActorService() noexcept
@@ -31,7 +34,7 @@ void ActorService::OnActorValueChanges(const PacketEvent<RequestActorValueChange
 
     auto itor = actorValuesView.find(static_cast<entt::entity>(message.Id));
 
-    if (itor != std::end(actorValuesView) ||
+    if (itor != std::end(actorValuesView) &&
         actorValuesView.get<OwnerComponent>(*itor).ConnectionId == acMessage.ConnectionId)
     {
         auto& actorValuesComponent = actorValuesView.get<ActorValuesComponent>(*itor);
@@ -67,7 +70,7 @@ void ActorService::OnActorMaxValueChanges(const PacketEvent<RequestActorMaxValue
 
     auto itor = actorValuesView.find(static_cast<entt::entity>(message.Id));
 
-    if (itor != std::end(actorValuesView) ||
+    if (itor != std::end(actorValuesView) &&
         actorValuesView.get<OwnerComponent>(*itor).ConnectionId == acMessage.ConnectionId)
     {
         auto& actorValuesComponent = actorValuesView.get<ActorValuesComponent>(*itor);
@@ -109,6 +112,38 @@ void ActorService::OnHealthChangeBroadcast(const PacketEvent<RequestHealthChange
         if (player.ConnectionId != acMessage.ConnectionId)
         {
             GameServer::Get()->Send(player.ConnectionId, notifyDamageEvent);
+        }
+    }
+}
+
+void ActorService::OnDeathStateChange(const PacketEvent<RequestDeathStateChange>& acMessage) const noexcept
+{
+    auto& message = acMessage.Packet;
+
+    auto characterView = m_world.view<CharacterComponent, OwnerComponent>();
+
+    auto itor = characterView.find(static_cast<entt::entity>(message.Id));
+
+    if (itor != std::end(characterView) && 
+        characterView.get<OwnerComponent>(*itor).ConnectionId == acMessage.ConnectionId)
+    {
+        auto& characterComponent = characterView.get<CharacterComponent>(*itor);
+        characterComponent.IsDead = message.IsDead;
+        spdlog::debug("Updating death state {:x}:{}", message.Id, message.IsDead);
+    }
+
+    NotifyDeathStateChange notifyChange;
+    notifyChange.Id = message.Id;
+    notifyChange.IsDead = message.IsDead;
+
+    auto view = m_world.view<PlayerComponent>();
+    for (auto entity : view)
+    {
+        auto& player = view.get<PlayerComponent>(entity);
+
+        if (player.ConnectionId != acMessage.ConnectionId)
+        {
+            GameServer::Get()->Send(player.ConnectionId, notifyChange);
         }
     }
 }

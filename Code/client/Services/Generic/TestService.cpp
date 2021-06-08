@@ -28,7 +28,12 @@
 #include <Components.h>
 #include <World.h>
 
+#include <Games/TES.h>
+#include <Forms/TESWorldSpace.h>
+#include <Forms/TESObjectCELL.h>
+
 #include <imgui.h>
+#include <inttypes.h>
 
 extern thread_local bool g_overrideFormId;
 
@@ -160,16 +165,6 @@ void TestService::OnUpdate(const UpdateEvent& acUpdateEvent) noexcept
         ShowCursor(TRUE);
 }
 
-static float (*guimatrix)[4][4] = nullptr;
-static NiRect<float> *guiport = nullptr;
-
-static TiltedPhoques::Initializer s_Init([]() { 
-    POINTER_FALLOUT4(float[4][4], s_matrix, 0x145A66AA0 - 0x140000000);
-    POINTER_FALLOUT4(NiRect<float>, s_port, 0x145A66B30 - 0x140000000);
-
-    guimatrix = s_matrix.Get();
-    guiport = s_port.Get();
-});
 
 #if 0
 using TSeek = __int64 (BSFile*, __int64, int);
@@ -203,14 +198,11 @@ static TiltedPhoques::Initializer s_LMAO([]() {
 #include <DirectXMath.h>
 
 
-bool HUD_WorldPtToScreenPt3(NiPoint3* in, NiPoint3* out)
-{
-    return NiCamera::WorldPtToScreenPt3((float*)guimatrix, guiport, in, &out->x, &out->y, &out->z, 1e-5f);
-}
-
-
 void TestService::OnDraw() noexcept
 {
+    static uint32_t fetchFormId;
+    static Actor* pFetchActor = 0;
+
     const auto view = m_world.view<FormIdComponent>();
     if (view.empty())
         return;
@@ -235,32 +227,220 @@ void TestService::OnDraw() noexcept
 
     ImGui::End();
 
+        ImGui::InputScalar("Shout", ImGuiDataType_U32, (void*)&shoutId, nullptr, nullptr, nullptr,
+                           ImGuiInputTextFlags_ReadOnly);
+#endif
 
-    if (PlayerCharacter* pPlayer = PlayerCharacter::Get())
-    {
-        auto* pDrawList = ImGui::GetBackgroundDrawList();
+        auto pWorldSpace = pPlayer->GetWorldSpace();
+        if (pWorldSpace)
+        {
+            auto worldFormId = pWorldSpace->formID;
+            ImGui::InputScalar("Worldspace", ImGuiDataType_U32, (void*)&worldFormId, nullptr, nullptr, "%" PRIx32,
+                               ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal);
+        }
 
-        auto position = pPlayer->position;
+        auto pCell = pPlayer->GetParentCell();
+        if (pCell)
+        {
+            auto cellFormId = pCell->formID;
+            ImGui::InputScalar("Cell Id", ImGuiDataType_U32, (void*)&cellFormId, nullptr, nullptr, "%" PRIx32,
+                               ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal);
+        }
 
-        // test scale up to head.
-        position.y -= 200.f;
+        const auto playerParentCell = pPlayer->parentCell;
+        if (playerParentCell)
+        {
+            ImGui::InputScalar("Player parent cell", ImGuiDataType_U32, (void*)&playerParentCell->formID, nullptr,
+                               nullptr, "%" PRIx32,
+                               ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal);
+        }
 
-        NiPoint3 out{};
-        HUD_WorldPtToScreenPt3(&pPlayer->position, &out);
+        auto* pTES = TES::Get();
+        if (pTES)
+        {
+            int32_t playerGrid[2] = {pTES->currentGridX, pTES->currentGridY};
+            int32_t centerGrid[2] = {pTES->centerGridX, pTES->centerGridY};
 
-        RECT rect{};
-        GetWindowRect(GetForegroundWindow(), &rect);
-
-        // transpose to screen
-        ImVec2 screenPos = ImVec2{
-            ((rect.right - rect.left) * out.x) + rect.left,
-            ((rect.bottom - rect.top) * (1.0f - out.y)) + rect.top,
-        };
-
-        // IT WORKS!
-        ImGui::GetBackgroundDrawList()->AddText(screenPos, ImColor::ImColor(255.f, 0.f, 0.f),
-                                                "Forseeee to the moon");
+            ImGui::InputInt2("Player grid", playerGrid, ImGuiInputTextFlags_ReadOnly);
+            ImGui::InputInt2("Center grid", centerGrid, ImGuiInputTextFlags_ReadOnly);
+        }
     }
+
+    ImGui::End();
+
+    ImGui::SetNextWindowSize(ImVec2(250, 300), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Actor lookup");
+
+    ImGui::InputScalar("Form ID", ImGuiDataType_U32, &fetchFormId, 0, 0, "%" PRIx32,
+                       ImGuiInputTextFlags_CharsHexadecimal);
+
+    if (ImGui::Button("Look up"))
+    {
+        if (fetchFormId)
+        {
+            auto* pFetchForm = TESForm::GetById(fetchFormId);
+            if (pFetchForm)
+                pFetchActor = RTTI_CAST(pFetchForm, TESForm, Actor);
+        }
+    }
+
+    if (pFetchActor)
+    {
+#if TP_SKYRIM64
+        const auto* pNpc = RTTI_CAST(pFetchActor->baseForm, TESForm, TESNPC);
+        if (pNpc && pNpc->fullName.value.data)
+        {
+            char name[256];
+            sprintf_s(name, std::size(name), "%s", pNpc->fullName.value.data);
+            ImGui::InputText("Name", name, std::size(name), ImGuiInputTextFlags_ReadOnly);
+        }
+#endif
+
+        ImGui::InputScalar("Memory address", ImGuiDataType_U64, (void*)&pFetchActor, 0, 0, "%" PRIx64,
+                           ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_ReadOnly);
+
+        ImGui::InputInt("Game Id", (int*)&pFetchActor->formID, 0, 0,
+                        ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal);
+        ImGui::InputFloat3("Position", pFetchActor->position.AsArray(), "%.3f", ImGuiInputTextFlags_ReadOnly);
+        ImGui::InputFloat3("Rotation", pFetchActor->rotation.AsArray(), "%.3f", ImGuiInputTextFlags_ReadOnly);
+        int isDead = int(pFetchActor->IsDead());
+        ImGui::InputInt("Is dead?", &isDead, 0, 0, ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal);
+
+        auto* pWorldSpace = pFetchActor->GetWorldSpace();
+        if (pWorldSpace)
+        {
+            auto worldFormId = pWorldSpace->formID;
+            ImGui::InputScalar("Actor Worldspace", ImGuiDataType_U32, (void*)&worldFormId, nullptr, nullptr, "%" PRIx32,
+                               ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal);
+        }
+
+        auto* pCell = pFetchActor->GetParentCell();
+        if (pCell)
+        {
+            auto cellFormId = pCell->formID;
+            ImGui::InputScalar("Actor Cell Id", ImGuiDataType_U32, (void*)&cellFormId, nullptr, nullptr, "%" PRIx32,
+                               ImGuiInputTextFlags_ReadOnly | ImGuiInputTextFlags_CharsHexadecimal);
+        }
+    }
+
+    ImGui::End();
+
+    ImGui::SetNextWindowSize(ImVec2(250, 300), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Component view");
+
+    if (ImGui::BeginTabBar("##Tabs", ImGuiTabBarFlags_None))
+    {
+        if (ImGui::BeginTabItem("Invisible"))
+        {
+            ImGui::BeginChild("Invisible components", ImVec2(0, 100), true);
+
+            static uint32_t s_selectedInvisibleId = 0;
+            static uint32_t s_selectedInvisible = 0;
+
+            auto invisibleView = m_world.view<RemoteComponent, InterpolationComponent, RemoteAnimationComponent>(
+                entt::exclude<FormIdComponent>);
+            Vector<entt::entity> entities(invisibleView.begin(), invisibleView.end());
+
+            int i = 0;
+            for (auto entity : entities)
+            {
+                auto& remoteComponent = invisibleView.get<RemoteComponent>(entity);
+                auto& interpolationComponent = invisibleView.get<InterpolationComponent>(entity);
+
+                char buffer[32];
+                if (ImGui::Selectable(itoa(remoteComponent.Id, buffer, 16),
+                                      s_selectedInvisibleId == remoteComponent.Id))
+                    s_selectedInvisibleId = remoteComponent.Id;
+
+                if (s_selectedInvisibleId == remoteComponent.Id)
+                    s_selectedInvisible = i;
+
+                ++i;
+            }
+
+            ImGui::EndChild();
+
+            if (s_selectedInvisible < entities.size())
+            {
+                auto entity = entities[s_selectedInvisible];
+
+                auto& remoteComponent = invisibleView.get<RemoteComponent>(entity);
+                ImGui::InputScalar("Server ID", ImGuiDataType_U32, &remoteComponent.Id, 0, 0, "%" PRIx32,
+                                   ImGuiInputTextFlags_CharsHexadecimal);
+                ImGui::InputScalar("Cached ref ID", ImGuiDataType_U32, &remoteComponent.CachedRefId, 0, 0, "%" PRIx32,
+                                   ImGuiInputTextFlags_CharsHexadecimal);
+
+                auto& interpolationComponent = invisibleView.get<InterpolationComponent>(entity);
+                ImGui::InputFloat("Position x", &interpolationComponent.Position.x, 0, 0, "%.3f",
+                                  ImGuiInputTextFlags_ReadOnly);
+                ImGui::InputFloat("Position y", &interpolationComponent.Position.y, 0, 0, "%.3f",
+                                  ImGuiInputTextFlags_ReadOnly);
+                ImGui::InputFloat("Position z", &interpolationComponent.Position.z, 0, 0, "%.3f",
+                                  ImGuiInputTextFlags_ReadOnly);
+            }
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Remote"))
+        {
+            ImGui::BeginChild("Remote components", ImVec2(0, 100), true);
+
+            static uint32_t s_selectedRemoteId = 0;
+            static uint32_t s_selectedRemote = 0;
+
+            auto remoteView = m_world.view<RemoteComponent>();
+            Vector<entt::entity> entities(remoteView.begin(), remoteView.end());
+
+            int i = 0;
+            for (auto entity : entities)
+            {
+                auto& remoteComponent = remoteView.get<RemoteComponent>(entity);
+
+                char buffer[32];
+                if (ImGui::Selectable(itoa(remoteComponent.Id, buffer, 16), s_selectedRemoteId == remoteComponent.Id))
+                    s_selectedRemoteId = remoteComponent.Id;
+
+                if (s_selectedRemoteId == remoteComponent.Id)
+                    s_selectedRemote = i;
+
+                ++i;
+            }
+
+            ImGui::EndChild();
+
+            if (s_selectedRemote < entities.size())
+            {
+                auto entity = entities[s_selectedRemote];
+
+                auto& remoteComponent = remoteView.get<RemoteComponent>(entity);
+                ImGui::InputScalar("Server ID", ImGuiDataType_U32, &remoteComponent.Id, 0, 0, "%" PRIx32,
+                                   ImGuiInputTextFlags_CharsHexadecimal);
+                ImGui::InputScalar("Cached ref ID", ImGuiDataType_U32, &remoteComponent.CachedRefId, 0, 0, "%" PRIx32,
+                                   ImGuiInputTextFlags_CharsHexadecimal);
+            }
+            ImGui::EndTabItem();
+        }
+        ImGui::EndTabBar();
+    }
+
+    ImGui::End();
+
+#if 0
+    ImGui::Begin("Weather");
+    if (ImGui::Button("Clear Sky"))
+        Sky::Get()->Reset();
+
+    if (ImGui::Button("None"))
+        Sky::Get()->SetSkyMode(Sky::SkyMode::kNone);
+    if (ImGui::Button("Interior"))
+        Sky::Get()->SetSkyMode(Sky::SkyMode::kInterior);
+    if (ImGui::Button("SkydomeOnly"))
+        Sky::Get()->SetSkyMode(Sky::SkyMode::kSkydomeOnly);
+    if (ImGui::Button("FullSky"))
+        Sky::Get()->SetSkyMode(Sky::SkyMode::kFullSky);
+
+    ImGui::End();
+#endif
 }
 
 

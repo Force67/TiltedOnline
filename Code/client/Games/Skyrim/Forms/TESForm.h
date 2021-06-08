@@ -6,6 +6,7 @@ enum FormType : uint8_t
 {
     Book = 27,
     Container = 28,
+    Door = 29,
     Ammo = 42,
     Npc = 43,
     LeveledCharacter = 44,
@@ -79,7 +80,7 @@ struct TESForm : BaseFormComponent
     virtual void sub_34();
     virtual void sub_35();
     virtual void sub_36();
-    virtual void sub_37();
+    virtual void ActivateReference();
     virtual void sub_38();
 
     //void CopyFromEx(TESForm* rhs);

@@ -4,10 +4,10 @@ enum ClientOpcode : unsigned char
 {
     kAuthenticationRequest = 0,
     kCancelAssignmentRequest,
-    kRemoveCharacterRequest,
     kAssignCharacterRequest,
     kClientReferencesMoveRequest,
-    kEnterCellRequest,
+    kEnterExteriorCellRequest,
+    kEnterInteriorCellRequest,
     kClientRpcCalls,
     kRequestInventoryChanges,
     kRequestFactionsChanges,
@@ -15,11 +15,17 @@ enum ClientOpcode : unsigned char
     kPartyInviteRequest,
     kPartyAcceptInviteRequest,
     kPartyLeaveRequest,
-    kCharacterTravelRequest,
     kRequestActorValueChanges,
     kRequestActorMaxValueChanges,
     kRequestHealthChangeBroadcast,
+    kActivateRequest,
+    kLockChangeRequest,
+    kAssignObjectsRequest,
     kRequestSpawnData,
+    kRequestDeathStateChange,
+    kShiftGridCellRequest,
+    kRequestOwnershipTransfer,
+    kRequestOwnershipClaim,
     kClientOpcodeMax
 };
 
@@ -39,10 +45,14 @@ enum ServerOpcode : unsigned char
     kNotifyPlayerList,
     kNotifyPartyInfo,
     kNotifyPartyInvite,
-    kNotifyCharacterTravel,
     kNotifyActorValueChanges,
     kNotifyActorMaxValueChanges,
     kNotifyHealthChangeBroadcast,
     kNotifySpawnData,
+    kNotifyActivate,
+    kNotifyLockChange,
+    kAssignObjectsResponse,
+    kNotifyDeathStateChange,
+    kNotifyOwnershipTransfer,
     kServerOpcodeMax
 };

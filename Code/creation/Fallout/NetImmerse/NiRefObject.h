@@ -15,7 +15,7 @@ namespace creation
         void IncRefCount();
         void DecRefCount();
 
-    private:
+    protected:
         uint32_t m_uiRefCount;
         uint32_t m_pad1;
         static std::atomic<uint32_t> ms_uiObjects;

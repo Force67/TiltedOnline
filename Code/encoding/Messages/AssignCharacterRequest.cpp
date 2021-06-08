@@ -6,6 +6,7 @@ void AssignCharacterRequest::SerializeRaw(TiltedPhoques::Buffer::Writer& aWriter
     ReferenceId.Serialize(aWriter);
     FormId.Serialize(aWriter);
     CellId.Serialize(aWriter);
+    WorldSpaceId.Serialize(aWriter);
     Position.Serialize(aWriter);
     Rotation.Serialize(aWriter);
     aWriter.WriteBits(ChangeFlags, 32);
@@ -16,6 +17,7 @@ void AssignCharacterRequest::SerializeRaw(TiltedPhoques::Buffer::Writer& aWriter
     QuestContent.Serialize(aWriter);
     FaceTints.Serialize(aWriter);
     AllActorValues.Serialize(aWriter);
+    Serialization::WriteBool(aWriter, IsDead);
 }
 
 void AssignCharacterRequest::DeserializeRaw(TiltedPhoques::Buffer::Reader& aReader) noexcept
@@ -26,6 +28,7 @@ void AssignCharacterRequest::DeserializeRaw(TiltedPhoques::Buffer::Reader& aRead
     ReferenceId.Deserialize(aReader);
     FormId.Deserialize(aReader);
     CellId.Deserialize(aReader);
+    WorldSpaceId.Deserialize(aReader);
     Position.Deserialize(aReader);
     Rotation.Deserialize(aReader);
 
@@ -46,4 +49,5 @@ void AssignCharacterRequest::DeserializeRaw(TiltedPhoques::Buffer::Reader& aRead
     QuestContent.Deserialize(aReader);
     FaceTints.Deserialize(aReader);
     AllActorValues.Deserialize(aReader);
+    IsDead = Serialization::ReadBool(aReader);
 }
